@@ -116,3 +116,9 @@ a:link, a:visited {
   text-align:center;
   color:#375BDC;
 }
+
+#calendar {
+  max-width: 700px;   /* Vaihda haluamasi leveys */
+  margin: 30px auto;  /* Keskittää kalenterin */
+  font-size: 0.9em;   /* Pienentää fonttia hieman */
+}
