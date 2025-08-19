@@ -1,7 +1,7 @@
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.template import loader
-from .models import User,Space
-from django.shortcuts import get_object_or_404
+from .models import User,Space, Event
+from django.shortcuts import get_object_or_404, render
 
 # Käytetty esimerkissä
 # from django.db.models import Q
@@ -49,3 +49,17 @@ def spaces_details(request, slug):
         'myspaces': myspaces,
     }
     return HttpResponse(template.render(context, request))
+
+def calendar_view(request):
+    return render(request, "calendar.html")
+
+def events_json(request):
+    events = Event.objects.all()
+    data = []
+    for event in events:
+        data.append({
+            "title": event.title,
+            "start": event.start.isoformat(),
+            "end": event.end.isoformat() if event.end else None,
+        })
+    return JsonResponse(data, safe=False)

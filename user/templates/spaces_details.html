@@ -77,4 +77,21 @@
       <!-- Kortti loppuu tähän -->
     </div>
   </div>
+
+  <!-- FullCalendar tulee kortin alapuolelle -->
+  <div id="calendar"></div>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      var calendarEl = document.getElementById("calendar");
+      var calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: "dayGridMonth",
+        events: "/events-json/", // Muista käyttää oikeaa URLia!
+        locale: 'fi', // Tämä kääntää kalenterin suomeksi
+        buttonText: {
+          today: 'Tänään'
+        }
+      });
+      calendar.render();
+    });
+  </script>
 {% endblock %}
