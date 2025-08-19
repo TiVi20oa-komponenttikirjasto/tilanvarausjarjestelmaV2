@@ -118,7 +118,52 @@ a:link, a:visited {
 }
 
 #calendar {
-  max-width: 700px;   /* Vaihda haluamasi leveys */
-  margin: 30px auto;  /* Keskittää kalenterin */
-  font-size: 0.9em;   /* Pienentää fonttia hieman */
+  width: 900px;
+  max-width: 1500px;
+  margin: 30px auto;
+  font-size: 1em;
+}
+
+.calendar-section {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.status-labels {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.status-labels .vapaa {
+  background: #b9fbc0;
+  color: #1a7f37;
+  padding: 8px 24px;
+  border-radius: 5px;
+}
+
+.status-labels .varattu {
+  background: #ffb3b3;
+  color: #b91c1c;
+  padding: 8px 24px;
+  border-radius: 5px;
+}
+
+.layout {
+  display: flex;
+  flex-direction: row;
+  min-height: 100vh;
+}
+
+.sidebar-left, .sidebar-right {
+  width: 220px;
+  background: #bbbbbb;
+  padding: 20px;
+}
+
+.main-content {
+  flex: 1;
+  padding: 30px;
 }
