@@ -5,93 +5,96 @@
 {% endblock %}
 
 {% block content %}
-  <!-- Kortti alkaa tästä -->
-  <div class="mycard">
-    
-    <!-- Tilan tyyppi ja sijainti -->
-    <!-- Kortin header -->
-    <div class="mycard-header">
-      <h1>
-        {% if myspaces.type == "office" %}
-          Toimisto
-        {% elif myspaces.type == "meeting_room" %}
-          Kokoushuone
-        {% elif myspaces.type == "conference_room" %}
-          Konferenssihuone
-        {% elif myspaces.type == "event_space" %}
-          Tapahtumatila
-        {% else %}
-          Ei määritelty
-        {% endif %}
-        {{ myspaces.location }}
-      </h1>
+<div class="layout">
+  <aside class="sidebar-left">
+    <!-- Left sidebar content here -->
+  </aside>
+  <main class="main-content">
+    <!-- Kortti alkaa tästä -->
+    <div class="mycard">
+      <div class="mycard-header">
+        <h1>
+          {% if myspaces.type == "office" %}
+            Toimisto
+          {% elif myspaces.type == "meeting_room" %}
+            Kokoushuone
+          {% elif myspaces.type == "conference_room" %}
+            Konferenssihuone
+          {% elif myspaces.type == "event_space" %}
+            Tapahtumatila
+          {% else %}
+            Ei määritelty
+          {% endif %}
+          {{ myspaces.location }}
+        </h1>
+      </div>
+      <div class="mycard-body">
+        <p>ID: {{ myspaces.idNumber }}</p>
+        <p>Tilan sijainti: {{ myspaces.location }}</p>
+        <p>Tilan tyyppi: 
+          {% if myspaces.type == "office" %}
+            Toimisto
+          {% elif myspaces.type == "meeting_room" %}
+            Kokoushuone
+          {% elif myspaces.type == "conference_room" %}
+            Konferenssihuone
+          {% elif myspaces.type == "event_space" %}
+            Tapahtumatila
+          {% else %}
+            Ei määritelty
+          {% endif %}
+        </p>
+        <p>
+          Palvelutyyppi: 
+          {% if myspaces.service_type == "rental" %}
+            Vuokra
+          {% elif myspaces.service_type == "loan" %}
+            Laina
+          {% else %}
+            Ei määritelty
+          {% endif %}
+        </p>
+        <p>
+          Tilan julkisuus: 
+          {% if myspaces.publicity == "private" %}
+            Yksityinen
+          {% elif myspaces.publicity == "public" %}
+            Julkinen
+          {% else %}
+            Ei määritelty
+          {% endif %}
+        </p>
+        <p>Tilan koko: {{ myspaces.size }}m²</p>
+        <p>Tilan kapasiteetti: {{ myspaces.capacity }} henkilöä</p>
+      </div>
     </div>
 
-    <!-- Kortin sisältö -->
-    <div class="mycard-body">
-      <p>ID: {{ myspaces.idNumber }}</p>
-      <p>Tilan sijainti: {{ myspaces.location }}</p>
-      
-      <!-- Tilan tyyppi -->
-      <p>Tilan tyyppi: 
-        {% if myspaces.type == "office" %}
-          Toimisto
-        {% elif myspaces.type == "meeting_room" %}
-          Kokoushuone
-        {% elif myspaces.type == "conference_room" %}
-          Konferenssihuone
-        {% elif myspaces.type == "event_space" %}
-          Tapahtumatila
-        {% else %}
-          Ei määritelty
-        {% endif %}
-      </p>
-
-      <!-- Palvelutyyppi -->
-      <p>
-        Palvelutyyppi: 
-        {% if myspaces.service_type == "rental" %}
-          Vuokra
-        {% elif myspaces.service_type == "loan" %}
-          Laina
-        {% else %}
-          Ei määritelty
-        {% endif %}
-      </p>
-
-      <!-- Julkisuus -->
-      <p>
-        Tilan julkisuus: 
-        {% if myspaces.publicity == "private" %}
-          Yksityinen
-        {% elif myspaces.publicity == "public" %}
-          Julkinen
-        {% else %}
-          Ei määritelty
-        {% endif %}
-      </p>
-
-      <p>Tilan koko: {{ myspaces.size }}m²</p>
-      <p>Tilan kapasiteetti: {{ myspaces.capacity }} henkilöä</p>
-
-      <!-- Kortti loppuu tähän -->
+    <div class="calendar-section">
+      <div class="status-labels">
+        <p>Näet kalenterissa vapaat ajat vihreänä ja varatut ajat punaisena</p>
+        <span class="vapaa">Vapaa</span>
+        <span class="varattu">Varattu</span>
+      </div>
+      <div id="calendar"></div>
     </div>
-  </div>
 
-  <!-- FullCalendar tulee kortin alapuolelle -->
-  <div id="calendar"></div>
-  <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      var calendarEl = document.getElementById("calendar");
-      var calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: "dayGridMonth",
-        events: "/events-json/", // Muista käyttää oikeaa URLia!
-        locale: 'fi', // Tämä kääntää kalenterin suomeksi
-        buttonText: {
-          today: 'Tänään'
-        }
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        var calendarEl = document.getElementById("calendar");
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+          initialView: "dayGridMonth",
+          events: "/events-json/",
+          locale: 'fi',
+          buttonText: {
+            today: 'Tänään'
+          }
+        });
+        calendar.render();
       });
-      calendar.render();
-    });
-  </script>
+    </script>
+  </main>
+  <aside class="sidebar-right">
+    <!-- Right sidebar content here -->
+  </aside>
+</div>
 {% endblock %}
