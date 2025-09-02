@@ -1,10 +1,10 @@
 from django.db import models
-
+from django.http import JsonResponse
 
 
 # Create your models here.
 
-# Malli joka kuvaa Uuutta käyttäjää sovelluksessa.
+# Malli joka kuvaa Uutta käyttäjää sovelluksessa.
 class User(models.Model):
   """Model representing a user in the application.
 
@@ -87,10 +87,19 @@ class Space(models.Model):
   def __str__(self):
       return f"ID: {self.idNumber}"
   
+# class Event(models.Model):
+#     title = models.CharField(max_length=200)
+#     start = models.DateTimeField()
+#     end = models.DateTimeField(blank=True, null=True) 
+
 class Event(models.Model):
-    title = models.CharField(max_length=200)
+    space = models.ForeignKey(Space, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    title = models.CharField(max_length=200)  # "varattu" tai "vapaa"
     start = models.DateTimeField()
     end = models.DateTimeField(blank=True, null=True)
 
     def __str__(self):
         return self.title
+    
+

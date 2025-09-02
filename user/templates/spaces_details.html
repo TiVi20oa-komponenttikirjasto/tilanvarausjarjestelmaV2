@@ -69,29 +69,50 @@
       </div>
     </div>
 
-    <div class="calendar-section">
-      <div class="status-labels">
-        <p>Näet kalenterissa vapaat ajat vihreänä ja varatut ajat punaisena</p>
-        <span class="vapaa">Vapaa</span>
-        <span class="varattu">Varattu</span>
-      </div>
-      <div id="calendar"></div>
-    </div>
-
-    <script>
-      document.addEventListener("DOMContentLoaded", function () {
-        var calendarEl = document.getElementById("calendar");
-        var calendar = new FullCalendar.Calendar(calendarEl, {
-          initialView: "dayGridMonth",
-          events: "/events-json/",
-          locale: 'fi',
-          buttonText: {
-            today: 'Tänään'
-          }
-        });
-        calendar.render();
-      });
-    </script>
+   <div class="calendar-section">
+  <div id="calendar"></div>
+</div>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    var calendarEl = document.getElementById("calendar");
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+      initialView: "dayGridMonth",
+      events: "/events-json/{{ myspaces.idNumber }}/",
+      locale: 'fi',
+      buttonText: {
+        today: 'Tänään'
+      },
+      selectable: true,
+      select: function(info) {
+        var type = prompt("Kirjoita 'varattu' (vuokra) tai 'vapaa' (laina):");
+        if (type === "varattu" || type === "vapaa") {
+          fetch("/add-event/", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRFToken": "{{ csrf_token }}"
+            },
+            body: JSON.stringify({
+              title: type,
+              start: info.startStr,
+              end: info.endStr,
+              space_id: "{{ myspaces.idNumber }}"
+            })
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.status === "error") {
+              alert(data.message);
+            } else {
+              calendar.refetchEvents();
+            }
+          });
+        }
+      }
+    });
+    calendar.render();
+  });
+</script>
   </main>
   <aside class="sidebar-right">
     <!-- Right sidebar content here -->
