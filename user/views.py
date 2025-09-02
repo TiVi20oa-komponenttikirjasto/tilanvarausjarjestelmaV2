@@ -64,6 +64,7 @@ def events_json(request, space_id):
     data = []
     for event in events:
         data.append({
+            "id": event.id,  # Tämä rivi on tärkeä!
             "title": event.title,
             "start": event.start.isoformat(),
             "end": event.end.isoformat() if event.end else None,
@@ -95,4 +96,15 @@ def add_event(request):
       end=end
     )
     return JsonResponse({"status": "ok"})
+
+@csrf_exempt
+def delete_event(request):
+  if request.method == "POST":
+    data = json.loads(request.body)
+    event_id = data.get("id")
+    try:
+      Event.objects.get(id=event_id).delete()
+      return JsonResponse({"status": "ok"})
+    except Event.DoesNotExist:
+      return JsonResponse({"status": "error", "message": "Varausta ei löytynyt"}, status=404)
 
