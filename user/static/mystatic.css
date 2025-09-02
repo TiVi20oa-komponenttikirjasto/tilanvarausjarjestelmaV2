@@ -118,8 +118,8 @@ a:link, a:visited {
 }
 
 #calendar {
-  width: 900px;
-  max-width: 1500px;
+  width: 35%;
+  height: 35%;
   margin: 30px auto;
   font-size: 1em;
 }
