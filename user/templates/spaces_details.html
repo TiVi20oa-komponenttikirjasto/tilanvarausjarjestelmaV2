@@ -69,56 +69,84 @@
       </div>
     </div>
     <div class="calendar-section">
-  <div>
-    <button id="btnVarattu" style="background:red;color:white;">Varaa</button>
-  </div>
-  <div id="calendar"></div>
-</div>
+      <div>
+        <button id="btnVarattu" style="background:red;color:white;">Varaa</button>
+      </div>
+      <div id="calendar"></div>
+    </div>
 
 <script>
   document.addEventListener("DOMContentLoaded", function () {
+    let varatutPaivat = new Set();
     var selectedType = "varattu"; // Oletus
+
     document.getElementById("btnVarattu").onclick = function() {
       selectedType = "varattu";
     };
-    
+
     var calendarEl = document.getElementById("calendar");
+
     var calendar = new FullCalendar.Calendar(calendarEl, {
       initialView: "dayGridMonth",
-      events: "/events-json/{{ myspaces.idNumber }}/",
-      locale: 'fi',
-      buttonText: {
-        today: 'Tänään'
+      events: function(fetchInfo, successCallback, failureCallback) {
+        fetch("/events-json/{{ myspaces.idNumber }}/")
+          .then(response => response.json())
+          .then(events => {
+            varatutPaivat.clear();
+            events.forEach(event => {
+              if (event.title.toLowerCase() === "varattu") {
+                varatutPaivat.add(event.start.substring(0, 10)); // "YYYY-MM-DD"
+              }
+            });
+            successCallback(events);
+          })
+          .catch(failureCallback);
       },
+      locale: 'fi',
+      buttonText: { today: 'Tänään' },
       selectable: true,
       select: function(info) {
-        fetch("/add-event/", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": "{{ csrf_token }}"
-          },
-          body: JSON.stringify({
-            title: selectedType,
-            start: info.startStr,
-            end: info.endStr,
-            space_id: "{{ myspaces.idNumber }}"
-          })
-        })
-        .then(response => response.json())
-        .then(data => {
-          if (data.status === "error") {
-            alert(data.message);
-          } else {
-            calendar.refetchEvents();
-          }
-        });
+  let startDate = new Date(info.startStr);
+  let endDate = new Date(info.endStr);
+  // Varaa vain päivät välillä [startDate, endDate) eli endDate ei kuulu mukaan
+  while (startDate < endDate) {
+    let dayStr = startDate.toISOString().split("T")[0];
+    fetch("/add-event/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": "{{ csrf_token }}"
+      },
+      body: JSON.stringify({
+        title: selectedType,
+        start: dayStr,
+        end: dayStr,
+        space_id: "{{ myspaces.idNumber }}"
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === "error") {
+        alert(data.message);
+      } else {
+        calendar.refetchEvents();
       }
     });
+    startDate.setDate(startDate.getDate() + 1);
+  }
+      },
+      dayCellClassNames: function(arg) {
+        const isoDate = arg.date.toISOString().substring(0, 10);
+        if (varatutPaivat.has(isoDate)) {
+          return ["varattu-paiva"];
+        }
+        return [];
+      }
+    });
+
     calendar.render();
   });
 </script>
- 
   </main>
   <aside class="sidebar-right">
     <!-- Right sidebar content here -->
