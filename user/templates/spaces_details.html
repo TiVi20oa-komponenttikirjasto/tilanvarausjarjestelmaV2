@@ -95,7 +95,7 @@
             varatutPaivat.clear();
             events.forEach(event => {
               if (event.title.toLowerCase() === "varattu") {
-                varatutPaivat.add(event.start.substring(0, 10)); // "YYYY-MM-DD"
+                varatutPaivat.add(event.start); // nyt event.start on "YYYY-MM-DD"
               }
             });
             successCallback(events);
@@ -106,8 +106,8 @@
       buttonText: { today: 'Tänään' },
       selectable: true,
       select: function(info) {
-  let startDate = new Date(info.startStr);
-  let endDate = new Date(info.endStr);
+  let startDate = new Date(info.startStr + "T00:00:00");
+  let endDate = new Date(info.endStr + "T00:00:00");
   // Varaa vain päivät välillä [startDate, endDate) eli endDate ei kuulu mukaan
   while (startDate < endDate) {
     let dayStr = startDate.toISOString().split("T")[0];
