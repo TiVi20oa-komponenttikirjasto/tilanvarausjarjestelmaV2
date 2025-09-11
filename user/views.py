@@ -66,8 +66,8 @@ def events_json(request, space_id):
         data.append({
             "id": event.id,  # Tämä rivi on tärkeä!
             "title": event.title,
-            "start": event.start.isoformat(),
-            "end": event.end.isoformat() if event.end else None,
+            "start": event.start.date().isoformat(),
+            "end": event.end.date().isoformat() if event.end else None,
             "color": "red" if event.title.lower() == "varattu" else "green"
         })
     return JsonResponse(data, safe=False)
