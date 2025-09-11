@@ -1,0 +1,24 @@
+{% extends "master.html" %}
+
+{% block title %}
+  Kalenteri
+{% endblock %}
+
+{% block content %}
+  <h2>Tilojen varaukset ja vapaat ajat</h2>
+  <div id="calendar"></div>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      var calendarEl = document.getElementById("calendar");
+      var calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: "dayGridMonth",
+        events: "/events-json/1/", // Vaihda 1 haluamasi tilan id:ksi
+        locale: 'fi',
+        buttonText: {
+          today: 'Tänään'
+        }
+      });
+      calendar.render();
+    });
+  </script>
+{% endblock %}

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import User, Space
+from .models import User, Space, Event
 
 # Register your models here.
 
@@ -28,3 +28,10 @@ class SpaceAdmin(admin.ModelAdmin):
   prepopulated_fields = {"slug": ("type", "location")}
 
 admin.site.register(Space, SpaceAdmin)
+
+class EventAdmin(admin.ModelAdmin):
+    list_display = ('title', 'space', 'start', 'end')
+    list_filter = ('space', 'title')
+    search_fields = ('title',)
+
+admin.site.register(Event, EventAdmin)
