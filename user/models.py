@@ -8,18 +8,22 @@ class User(models.Model):
   """Model representing a user in the application.
 
   Args:
+      idNumber (int): Unique identifier for the user
       firstname (str): First name of the user
       lastname (str): Last name of the user
       phone (int): Phone number of the user
+      email (str): Email address of the user
       joined_date (date): Date when the user joined
       slug (str): Slug field for URL identification
 
   Returns:
       str: String representation of the user
   """
+  idNumber = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
   firstname = models.CharField(max_length=255)
   lastname = models.CharField(max_length=255)
   phone = models.CharField(max_length=11, null=True)
+  email = models.EmailField(max_length=255, null=True)
   joined_date = models.DateField(null=True)
   slug = models.SlugField(default="", null=False)
 
