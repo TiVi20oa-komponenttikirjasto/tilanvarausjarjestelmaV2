@@ -38,7 +38,6 @@ class Space(models.Model):
       type (str): Type of the space
       size (str): Size of the space in square meters
       capacity (str): Capacity of the space
-      reservation (bool): Indicates if the space can be reserved
       slug (str): Slug field for URL identification
 
   Returns:
@@ -80,16 +79,10 @@ class Space(models.Model):
   
   size = models.CharField(max_length=10, verbose_name="Size m²", default="0", blank=True)
   capacity = models.CharField(max_length=10, verbose_name="Capacity", default="0", blank=True)
-  reservation = models.BooleanField(default=False)
   slug = models.SlugField(default="", null=False)
 
   def __str__(self):
       return f"ID: {self.idNumber}"
-  
-# class Event(models.Model):
-#     title = models.CharField(max_length=200)
-#     start = models.DateTimeField()
-#     end = models.DateTimeField(blank=True, null=True) 
 
 class Event(models.Model):
     space = models.ForeignKey(Space, on_delete=models.CASCADE)
@@ -100,5 +93,3 @@ class Event(models.Model):
 
     def __str__(self):
         return self.title
-    
-
