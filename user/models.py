@@ -8,18 +8,22 @@ class User(models.Model):
   """Model representing a user in the application.
 
   Args:
+      idNumber (int): Unique identifier for the user
       firstname (str): First name of the user
       lastname (str): Last name of the user
       phone (int): Phone number of the user
+      email (str): Email address of the user
       joined_date (date): Date when the user joined
       slug (str): Slug field for URL identification
 
   Returns:
       str: String representation of the user
   """
+  idNumber = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
   firstname = models.CharField(max_length=255)
   lastname = models.CharField(max_length=255)
   phone = models.CharField(max_length=11, null=True)
+  email = models.EmailField(max_length=255, null=True)
   joined_date = models.DateField(null=True)
   slug = models.SlugField(default="", null=False)
 
@@ -38,7 +42,6 @@ class Space(models.Model):
       type (str): Type of the space
       size (str): Size of the space in square meters
       capacity (str): Capacity of the space
-      reservation (bool): Indicates if the space can be reserved
       slug (str): Slug field for URL identification
 
   Returns:
@@ -80,16 +83,10 @@ class Space(models.Model):
   
   size = models.CharField(max_length=10, verbose_name="Size m²", default="0", blank=True)
   capacity = models.CharField(max_length=10, verbose_name="Capacity", default="0", blank=True)
-  reservation = models.BooleanField(default=False)
   slug = models.SlugField(default="", null=False)
 
   def __str__(self):
       return f"ID: {self.idNumber}"
-  
-# class Event(models.Model):
-#     title = models.CharField(max_length=200)
-#     start = models.DateTimeField()
-#     end = models.DateTimeField(blank=True, null=True) 
 
 class Event(models.Model):
     space = models.ForeignKey(Space, on_delete=models.CASCADE)
@@ -100,5 +97,3 @@ class Event(models.Model):
 
     def __str__(self):
         return self.title
-    
-
