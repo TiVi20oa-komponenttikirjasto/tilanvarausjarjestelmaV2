@@ -11,7 +11,7 @@ class MemberAdmin(admin.ModelAdmin):
   Args:
       admin (ModelAdmin): The base admin class.
   """
-  list_display = ("firstname", "lastname", "joined_date",)
+  list_display = ("idNumber", "firstname", "lastname", "email", "phone", "joined_date",)
   prepopulated_fields = {"slug": ("firstname", "lastname")}
 
 admin.site.register(User, MemberAdmin)
