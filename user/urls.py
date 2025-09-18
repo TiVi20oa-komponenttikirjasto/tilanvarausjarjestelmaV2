@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from .views import register, registration_success
 
 urlpatterns = [
     # Main URL
@@ -7,6 +8,9 @@ urlpatterns = [
     # Käyttäjät URLs
     path('user/', views.user, name='user'),
     path('user/users_details/<slug:slug>', views.users_details, name='users_details'),
+    # Rekisteröinti URLs
+    path('register/', register, name='user-register'),
+    path('registration-success/', registration_success, name='registration-success'),
     # Tilat URLs
     path('space/', views.space, name='space'),
     path('space/spaces_details/<slug:slug>', views.spaces_details, name='spaces_details'),

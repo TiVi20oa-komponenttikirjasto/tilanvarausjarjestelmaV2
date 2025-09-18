@@ -3,9 +3,11 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 from django.template import loader
 from .models import User,Space, Event
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, render, redirect
 from django.utils import timezone
+from .forms import UserRegistrationForm
 import datetime
+from django.utils.text import slugify
 
 # Käytetty esimerkissä
 # from django.db.models import Q
@@ -34,6 +36,25 @@ def users_details(request, slug):
     'mymember': mymember,
   } 
   return HttpResponse(template.render(context, request))
+
+
+# Rekisteröinti näkymä applikaatioille
+def register(request):
+  if request.method == 'POST':
+    form = UserRegistrationForm(request.POST)
+    if form.is_valid():
+      user = form.save(commit=False)
+      user.joined_date = timezone.now()
+      user.slug = slugify(f"{user.firstname}-{user.lastname}")
+      user.save()
+      return redirect('registration-success')
+  else:
+    form = UserRegistrationForm()
+  return render(request, 'register.html', {'form': form})
+
+# Rekisteröinti onnistui näkymä applikaatioille
+def registration_success(request):
+  return render(request, 'registration_success.html')
 
 # Tilat näkymä applikaatioille
 def space(request):
