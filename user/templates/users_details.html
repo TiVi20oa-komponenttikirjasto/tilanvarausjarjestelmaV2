@@ -15,8 +15,10 @@
     </div>
 
     <!-- Kortin sisältö -->
-    <div class="mycard-body"> 
+    <div class="mycard-body">
+      <p>ID: {{ mymember.idNumber }}</p>
       <p>Puhelin: {{ mymember.phone }}</p>
+      <p>Sähköposti: {{ mymember.email }}</p>
       <p>Liittynyt jäseneksi: {{ mymember.joined_date }}</p>
     </div>
 
