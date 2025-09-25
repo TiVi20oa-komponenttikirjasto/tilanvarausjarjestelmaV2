@@ -88,7 +88,21 @@ class Space(models.Model):
   def __str__(self):
       return f"ID: {self.idNumber}"
 
+# Malli joka kuvaa yksittäistä varausta sovelluksessa.
 class Event(models.Model):
+    """
+    Model representing a single reservation (event) in the application.
+
+    Args:
+        space (ForeignKey): Reference to the reserved space
+        user (ForeignKey): Reference to the user who made the reservation
+        title (str): Reservation status or description (e.g. "varattu" or "vapaa")
+        start (DateTime): Start time of the reservation
+        end (DateTime): End time of the reservation
+
+    Returns:
+        str: String representation of the event
+    """
     space = models.ForeignKey(Space, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     title = models.CharField(max_length=200)  # "varattu" tai "vapaa"

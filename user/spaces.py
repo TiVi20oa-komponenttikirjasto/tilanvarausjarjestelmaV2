@@ -1,3 +1,5 @@
+# Ylimäärinen sivu, joka ei ole käytössä tässä projektissa.
+# Tämä tiedosto on tarkoitettu esimerkkinä siitä, miten voit määritellä tiloja, vuokrauksia ja lainoja Django-malleina.
 from django.db import models
 from django.contrib.auth.models import User
 

@@ -28,10 +28,17 @@ class SpaceAdmin(admin.ModelAdmin):
   prepopulated_fields = {"slug": ("type", "location")}
 
 admin.site.register(Space, SpaceAdmin)
-
+ 
+# Varausten hallinta adminissa
 class EventAdmin(admin.ModelAdmin):
-    list_display = ('title', 'space', 'start', 'end')
-    list_filter = ('space', 'title')
-    search_fields = ('title',)
+  """
+  Admin interface for managing event instances.
+
+  Args:
+    admin (ModelAdmin): The base admin class.
+  """
+  list_display = ('title', 'space', 'start', 'end')
+  list_filter = ('space', 'title')
+  search_fields = ('title',)
 
 admin.site.register(Event, EventAdmin)
