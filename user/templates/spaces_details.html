@@ -1,3 +1,12 @@
+<!--
+Suomeksi: Tämä sivu näyttää yksittäisen tilan tiedot ja varauskalenterin.
+
+English docstring:
+"""
+This template displays details for a single space and its reservation calendar.
+Users can view space info and make reservations using FullCalendar.
+"""
+-->
 {% extends "master.html" %}
 
 {% block title %}
@@ -75,6 +84,10 @@
       <div id="calendar"></div>
     </div>
 
+{% load static %}
+<link href="{% static 'fullcalendar/fullcalendar.min.css' %}" rel="stylesheet" />
+<script src="{% static 'fullcalendar/fullcalendar.min.js' %}"></script>
+<script src="{% static 'fullcalendar/rrule.min.js' %}"></script>
 <script>
   document.addEventListener("DOMContentLoaded", function () {
     let varatutPaivat = new Set();
@@ -106,35 +119,35 @@
       buttonText: { today: 'Tänään' },
       selectable: true,
       select: function(info) {
-  let startDate = new Date(info.startStr + "T00:00:00");
-  let endDate = new Date(info.endStr + "T00:00:00");
-  // Varaa vain päivät välillä [startDate, endDate) eli endDate ei kuulu mukaan
-  while (startDate < endDate) {
-    let dayStr = startDate.toISOString().split("T")[0];
-    fetch("/add-event/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": "{{ csrf_token }}"
-      },
-      body: JSON.stringify({
-        title: selectedType,
-        start: dayStr + "T00:00:00",
-        end: dayStr + "T23:59:59",
-        space_id: "{{ myspaces.idNumber }}"
-      })
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.status === "error") {
-        alert(data.message);
-      } else {
-        calendar.refetchEvents();
-      }
-    });
-    startDate.setDate(startDate.getDate() + 1);
-  }
-  calendar.unselect();
+        let startDate = new Date(info.startStr + "T00:00:00");
+        let endDate = new Date(info.endStr + "T00:00:00");
+        // Varaa vain päivät välillä [startDate, endDate) eli endDate ei kuulu mukaan
+        while (startDate < endDate) {
+          let dayStr = startDate.toISOString().split("T")[0];
+          fetch("/add-event/", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRFToken": "{{ csrf_token }}"
+            },
+            body: JSON.stringify({
+              title: selectedType,
+              start: dayStr + "T00:00:00",
+              end: dayStr + "T23:59:59",
+              space_id: "{{ myspaces.idNumber }}"
+            })
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.status === "error") {
+              alert(data.message);
+            } else {
+              calendar.refetchEvents();
+            }
+          });
+          startDate.setDate(startDate.getDate() + 1);
+        }
+        calendar.unselect();
       },
       dayCellClassNames: function(arg) {
         const isoDate = arg.date.toISOString().substring(0, 10);
