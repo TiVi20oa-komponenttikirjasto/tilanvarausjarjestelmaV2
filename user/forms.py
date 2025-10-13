@@ -1,14 +1,17 @@
 from django import forms
-from .models import User
+from django.contrib.auth.models import User
 
 class UserRegistrationForm(forms.ModelForm):
+    password = forms.CharField(label='Salasana', widget=forms.PasswordInput)
+    phone = forms.CharField(label='Puhelin')
+
     class Meta:
         model = User
-        fields = ['idNumber', 'firstname', 'lastname', 'email', 'phone',]
+        fields = ['username', 'first_name', 'last_name', 'email', 'password']
         labels = {
-            'idNumber': 'ID Numero',
-            'firstname': 'Etunimi',
-            'lastname': 'Sukunimi',
+            'username': 'Käyttäjätunnus',
+            'first_name': 'Etunimi',
+            'last_name': 'Sukunimi',
             'email': 'Sähköposti',
-            'phone': 'Puhelin',
+            'password': 'Salasana',
         }

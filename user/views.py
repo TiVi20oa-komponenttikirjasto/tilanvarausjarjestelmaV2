@@ -2,9 +2,11 @@ from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
 from django.template import loader
-from .models import User,Space, Event
+from .models import User,Space,Event
 from django.shortcuts import get_object_or_404, render, redirect
 from django.utils import timezone
+from django.contrib.auth.models import User as AuthUser
+from django.contrib.auth.hashers import make_password
 from .forms import UserRegistrationForm
 import datetime
 from django.utils.text import slugify
@@ -20,8 +22,8 @@ def main(request):
 
 # Käyttäjät näkymä applikaatiolle
 def user(request):
-  mymembers = User.objects.all().values()
-  template = loader.get_template('all_members.html')
+  mymembers = AuthUser.objects.all().values()
+  template = loader.get_template('user/all_members.html')
   context = {
     'mymembers': mymembers,
   }
@@ -31,7 +33,7 @@ def user(request):
 # Käyttäjän yksityiskohtien näkymä applikaatiolle
 def users_details(request, slug):
   mymember = User.objects.get(slug=slug)
-  template = loader.get_template('users_details.html')
+  template = loader.get_template('user/users_details.html')
   context = {
     'mymember': mymember,
   } 
@@ -44,17 +46,16 @@ def register(request):
     form = UserRegistrationForm(request.POST)
     if form.is_valid():
       user = form.save(commit=False)
-      user.joined_date = timezone.now()
-      user.slug = slugify(f"{user.firstname}-{user.lastname}")
+      user.set_password(form.cleaned_data['password'])
       user.save()
       return redirect('registration-success')
   else:
     form = UserRegistrationForm()
-  return render(request, 'register.html', {'form': form})
+  return render(request, 'user/register.html', {'form': form})
 
 # Rekisteröinti onnistui näkymä applikaatioille
 def registration_success(request):
-  return render(request, 'registration_success.html')
+  return render(request, 'user/registration_success.html')
 
 # Tilat näkymä applikaatioille
 def space(request):

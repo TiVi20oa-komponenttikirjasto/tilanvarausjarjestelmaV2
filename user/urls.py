@@ -9,8 +9,8 @@ urlpatterns = [
     path('user/', views.user, name='user'),
     path('user/users_details/<slug:slug>', views.users_details, name='users_details'),
     # Rekisteröinti URLs
-    path('register/', register, name='user-register'),
-    path('registration-success/', registration_success, name='registration-success'),
+    path('user/register/', register, name='user-register'),
+    path('user/registration-success/', registration_success, name='registration-success'),
     # Tilat URLs
     path('space/', views.space, name='space'),
     path('space/spaces_details/<slug:slug>', views.spaces_details, name='spaces_details'),
