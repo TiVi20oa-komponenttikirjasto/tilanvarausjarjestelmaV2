@@ -37,8 +37,22 @@ class EventAdmin(admin.ModelAdmin):
   Args:
     admin (ModelAdmin): The base admin class.
   """
-  list_display = ('title', 'space', 'start', 'end')
+  # Show date-only values in the list to avoid timezone/format confusion
+  list_display = ('title', 'space', 'start_date', 'end_date')
   list_filter = ('space', 'title')
   search_fields = ('title',)
+  # Default ordering in admin list: earliest start first, tie-breaker by id
+  ordering = ('start', 'id')
+
+  def start_date(self, obj):
+    # return a date-only representation to avoid timezone shifts in the admin list
+    return obj.start.date() if obj.start else None
+  start_date.admin_order_field = 'start'
+  start_date.short_description = 'Start'
+
+  def end_date(self, obj):
+    return obj.end.date() if obj.end else None
+  end_date.admin_order_field = 'end'
+  end_date.short_description = 'End'
 
 admin.site.register(Event, EventAdmin)

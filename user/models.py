@@ -111,3 +111,7 @@ class Event(models.Model):
 
     def __str__(self):
         return self.title
+    
+    class Meta:
+        # Default ordering at the model level: earliest start first, tie-breaker by id
+        ordering = ['start', 'id']
