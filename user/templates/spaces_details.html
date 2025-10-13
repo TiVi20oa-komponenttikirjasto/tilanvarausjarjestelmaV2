@@ -1,3 +1,12 @@
+<!--
+Suomeksi: Tämä sivu näyttää yksittäisen tilan tiedot ja varauskalenterin.
+
+English docstring:
+"""
+This template displays details for a single space and its reservation calendar.
+Users can view space info and make reservations using FullCalendar.
+"""
+-->
 {% extends "master.html" %}
 
 {% block title %}
@@ -5,6 +14,15 @@
 {% endblock %}
 
 {% block content %}
+{% load static %}
+<!-- FullCalendar local package scripts (loaded from the downloaded package) -->
+<script src="{% static 'fullcalendar/fullcalendar-6.1.19/packages/core/index.global.min.js' %}"></script>
+<script src="{% static 'fullcalendar/fullcalendar-6.1.19/packages/interaction/index.global.min.js' %}"></script>
+<script src="{% static 'fullcalendar/fullcalendar-6.1.19/packages/daygrid/index.global.min.js' %}"></script>
+<script src="{% static 'fullcalendar/fullcalendar-6.1.19/packages/timegrid/index.global.min.js' %}"></script>
+<script src="{% static 'fullcalendar/fullcalendar-6.1.19/packages/list/index.global.min.js' %}"></script>
+<script src="{% static 'fullcalendar/fullcalendar-6.1.19/packages/rrule/index.global.min.js' %}"></script>
+<script src="{% static 'fullcalendar/fullcalendar-6.1.19/packages/core/locales-all.global.min.js' %}"></script>
 <div class="layout">
   <aside class="sidebar-left">
     <!-- Left sidebar content here -->
@@ -75,10 +93,7 @@
       <div id="calendar"></div>
     </div>
 
-{% load static %}
-<link href="{% static 'fullcalendar/fullcalendar.min.css' %}" rel="stylesheet" />
-<script src="{% static 'fullcalendar/fullcalendar.min.js' %}"></script>
-<script src="{% static 'fullcalendar/rrule.min.js' %}"></script>
+<!-- styles are injected by FullCalendar plugins, no separate CSS file required here -->
 <script>
   document.addEventListener("DOMContentLoaded", function () {
     let varatutPaivat = new Set();
@@ -96,10 +111,56 @@
         fetch("/events-json/{{ myspaces.idNumber }}/")
           .then(response => response.json())
           .then(events => {
+            // Diagnostic logs: print what server returned so we can debug ordering
+            try {
+              console.log('DEBUG: raw event.starts ->', events.map(e => e.start));
+            } catch (e) { console.log('DEBUG: could not map starts', e); }
+
+            // Ensure events are ordered by start datetime (ascending).
+            // Parse server-provided ISO-ish strings into local Date components to avoid
+            // Date.parse() timezone quirks, then sort by numeric timestamp.
+            function parseIsoLocal(s) {
+              if (!s) return null;
+              // If string contains 'T', handle date and time; otherwise just date.
+              const [datePart, timePart] = s.split('T');
+              const [y, mo, d] = datePart.split('-').map(Number);
+              if (!timePart) {
+                return new Date(y, (mo || 1) - 1, d || 1);
+              }
+              // timePart may include timezone (Z or +/-); ignore timezone and parse local time
+              const timeOnly = timePart.split(/Z|\+|-/)[0];
+              const [hh = '0', mm = '0', ss = '0'] = timeOnly.split(':');
+              return new Date(y, (mo || 1) - 1, d || 1, Number(hh), Number(mm), Number(ss));
+            }
+
+            // Diagnostic: show parsed timestamps before sort
+            function debugParsedList(arr) {
+              return arr.map(x => {
+                const raw = x && x.start ? x.start : '';
+                const parsed = parseIsoLocal(raw);
+                return { raw, parsedTs: parsed ? parsed.getTime() : null };
+              });
+            }
+            console.log('DEBUG: parsed before sort ->', debugParsedList(events));
+
+            events.sort((a, b) => {
+              const da = parseIsoLocal(a && a.start ? a.start : '');
+              const db = parseIsoLocal(b && b.start ? b.start : '');
+              const ta = da ? da.getTime() : 0;
+              const tb = db ? db.getTime() : 0;
+              return ta - tb;
+            });
+
+            console.log('DEBUG: parsed after sort ->', debugParsedList(events));
+
             varatutPaivat.clear();
             events.forEach(event => {
-              if (event.title.toLowerCase() === "varattu") {
-                varatutPaivat.add(event.start); // nyt event.start on "YYYY-MM-DD"
+              if (event.title && event.title.toLowerCase() === "varattu") {
+                // Normalize returned start: if server sent a full datetime, take date part.
+                let startKey = event.start && event.start.split ? event.start.split("T")[0] : event.start;
+                if (startKey) {
+                  varatutPaivat.add(startKey);
+                }
               }
             });
             successCallback(events);
@@ -110,11 +171,20 @@
       buttonText: { today: 'Tänään' },
       selectable: true,
       select: function(info) {
-        let startDate = new Date(info.startStr + "T00:00:00");
-        let endDate = new Date(info.endStr + "T00:00:00");
-        // Varaa vain päivät välillä [startDate, endDate) eli endDate ei kuulu mukaan
-        while (startDate < endDate) {
-          let dayStr = startDate.toISOString().split("T")[0];
+        // Build local YYYY-MM-DD strings to avoid timezone shifts.
+        function toYMD(d) {
+          const y = d.getFullYear();
+          const m = String(d.getMonth() + 1).padStart(2, '0');
+          const day = String(d.getDate()).padStart(2, '0');
+          return `${y}-${m}-${day}`;
+        }
+
+        // info.start and info.end are Date objects; info.end is exclusive
+        let cur = new Date(info.start.getFullYear(), info.start.getMonth(), info.start.getDate());
+        const end = new Date(info.end.getFullYear(), info.end.getMonth(), info.end.getDate());
+
+        while (cur < end) {
+          const dayStr = toYMD(cur);
           fetch("/add-event/", {
             method: "POST",
             headers: {
@@ -136,12 +206,19 @@
               calendar.refetchEvents();
             }
           });
-          startDate.setDate(startDate.getDate() + 1);
+
+          cur.setDate(cur.getDate() + 1);
         }
+
         calendar.unselect();
       },
       dayCellClassNames: function(arg) {
-        const isoDate = arg.date.toISOString().substring(0, 10);
+        // Format the date locally to YYYY-MM-DD to match varatutPaivat keys
+        const d = arg.date;
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        const isoDate = `${y}-${m}-${day}`;
         if (varatutPaivat.has(isoDate)) {
           return ["varattu-paiva"];
         }
