@@ -83,20 +83,22 @@ def calendar_view(request):
 
 # Palauttaa tilan tapahtumat JSON-muodossa kalenterille
 def events_json(request, space_id):
-  """
-  Returns all events for a given space as JSON for FullCalendar.
-  """
-  events = Event.objects.filter(space_id=space_id)
-  data = []
-  for event in events:
-    data.append({
-      "id": event.id,  # This line is important!
-      "title": event.title,
-      "start": event.start.date().isoformat(),
-      "end": event.end.date().isoformat() if event.end else None,
-      "color": "red" if event.title.lower() == "varattu" else "green"
-    })
-  return JsonResponse(data, safe=False)
+    """
+    Returns all events for a given space as JSON for FullCalendar.
+    Events are ordered by start datetime ascending to ensure consistent chronology.
+    """
+    events = Event.objects.filter(space_id=space_id).order_by('start')
+    data = []
+    for event in events:
+        data.append({
+            "id": event.id,  # This line is important!
+            "title": event.title,
+            # Return full ISO datetimes (naive or timezone-aware depending on your settings).
+            "start": event.start.isoformat(),
+            "end": event.end.isoformat() if event.end else None,
+            "color": "red" if event.title.lower() == "varattu" else "green"
+        })
+    return JsonResponse(data, safe=False)
 
 
 # Lisää uusi tapahtuma kalenteriin
