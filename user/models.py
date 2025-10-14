@@ -1,24 +1,25 @@
 from django.db import models
 from django.http import JsonResponse
 
-# Create your models here.
+# # Mallit määrittelevät sovelluksen tietokantarakenteen
 
 # Malli joka kuvaa Uutta käyttäjää sovelluksessa.
 class User(models.Model):
   """Model representing a user in the application.
 
   Args:
-      idNumber (int): Unique identifier for the user
-      firstname (str): First name of the user
-      lastname (str): Last name of the user
-      phone (int): Phone number of the user
-      email (str): Email address of the user
-      joined_date (date): Date when the user joined
-      slug (str): Slug field for URL identification
+      idNumber (BigAutoField): Unique identifier for the user
+      firstname (CharField): First name of the user
+      lastname (CharField): Last name of the user
+      phone (CharField): Phone number of the user (optional)
+      email (EmailField): Email address of the user (optional)
+      joined_date (DateField): Date when the user joined (optional)
+      slug (SlugField): Slug for URL identification
 
   Returns:
-      str: String representation of the user
+      str: String representation of the user (first and last name).
   """
+
   idNumber = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
   firstname = models.CharField(max_length=255)
   lastname = models.CharField(max_length=255)
@@ -30,6 +31,7 @@ class User(models.Model):
   def __str__(self):
     return f"{self.firstname} {self.lastname}"
 
+# TODO: Kirjoitettava kommentit ja docstringit
 # Malli joka kuvaa uutta tilaa sovelluksessa.
 class Space(models.Model):
   """Model representing new space in the application.

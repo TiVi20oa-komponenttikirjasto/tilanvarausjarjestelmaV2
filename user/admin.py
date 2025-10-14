@@ -3,12 +3,11 @@ from .models import User, Space, Event
 
 # Järjestelmänvalvojan rakenne MemberAdmin luokalle, joka hyödyntää UusiKayttaja-mallia
 class MemberAdmin(admin.ModelAdmin):
-  """
-  Admin interface for managing user instances.
+  """ Interface for managing user instances.
 
   Args:
       admin (ModelAdmin): The base admin class.
-      lsit_display (tuple): Fields to display in the admin list view.
+      list_display (tuple): Fields to display in the admin list view.
       prepopulated_fields (dict): Fields to auto-populate based on other fields.
   """
 
@@ -17,7 +16,7 @@ class MemberAdmin(admin.ModelAdmin):
 
 # Järjestelmänvalvojan rakenne SpaceAdmin luokalle, joka hyödyntää Tilat-mallia
 class SpaceAdmin(admin.ModelAdmin):
-  """Admin interface for managing space instances.
+  """ Interface for managing space instances.
 
   Args:
       admin (ModelAdmin): The base admin class.
@@ -30,8 +29,7 @@ class SpaceAdmin(admin.ModelAdmin):
 
 # Varausten hallinta adminissa
 class EventAdmin(admin.ModelAdmin):
-  """
-  Admin interface for managing event instances.
+  """ Interface for managing event instances.
 
   Args:
     admin (ModelAdmin): The base admin class.
@@ -48,13 +46,13 @@ class EventAdmin(admin.ModelAdmin):
 
   # Metodi joka palauttaa vain alkamis päivämäärän, jotta vältytään aikavyöhykkeisiin liittyviltä ongelmilta
   def start_date(self, obj):
-    """_summary_
+    """The start date without time zone issues.
 
     Args:
-        obj (_type_): _description_
+        Event (object): The event instance.
 
     Returns:
-        _type_: _description_
+         date: The start date of the event, or None if not available
     """
     # Palauttaa vain päivämäärän osan datetime-arvosta
     return obj.start.date() if obj.start else None
@@ -63,20 +61,20 @@ class EventAdmin(admin.ModelAdmin):
 
   # Metodi joka palauttaa vain loppumis päivämäärän, jotta vältytään aikavyöhykkeisiin liittyviltä ongelmilta
   def end_date(self, obj):
-    """_summary_
+    """Returns the end date without timezone issues.
 
     Args:
-        obj (_type_): _description_
+        Event (object): The event instance.
 
     Returns:
-        _type_: _description_
+        date: The end date of the event, or None if not available
     """
     # Palauttaa vain päivämäärän osan datetime-arvosta
     return obj.end.date() if obj.end else None
   end_date.admin_order_field = 'end'
   end_date.short_description = 'End'
 
-
+# Rekisteröidään mallit admin-käyttöliittymään
 admin.site.register(User, MemberAdmin)
 admin.site.register(Space, SpaceAdmin)
 admin.site.register(Event, EventAdmin)
