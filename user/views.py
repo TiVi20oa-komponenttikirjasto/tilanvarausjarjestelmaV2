@@ -1,3 +1,6 @@
+# KIRJASTOT
+# =========
+
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
@@ -11,6 +14,10 @@ import datetime
 # from django.db.models import Q
 # https://www.w3schools.com/django/django_queryset_filter.php/ Filtterointi tapoja/suodatustapoja koodiin!
 
+# FUNKTIOT
+# ========
+
+#TODO: Luotava selkeät kommentit ja docstringit
 
 # Pääsivun näkymä
 def main(request):
