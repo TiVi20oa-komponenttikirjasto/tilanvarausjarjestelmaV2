@@ -1,6 +1,7 @@
 # KIRJASTOJEN JA MODUULIEN LATAUKSET
 # ==================================
 
+from django.contrib.auth import views as auth_views
 from django.urls import path
 from . import views
 from .views import register, registration_success
@@ -12,9 +13,17 @@ urlpatterns = [
     # Pääsivu
     path('', views.main, name='main'),
 
+    # Rekisteröinti
+    path('register/', register, name='register'),
+    path('registration-success/', registration_success, name='registration-success'),
+
+    # Kirjautuminen ja uloskirjautuminen
+    path('login/', auth_views.LoginView.as_view(template_name='user/login.html'), name='login'),
+    path('logout/', auth_views.LogoutView.as_view(next_page='main'), name='logout'),
+
     # Käyttäjien listaus ja yksityiskohdat
-    path('user/', views.user, name='user'),
-    path('user/users_details/<slug:slug>', views.users_details, name='users_details'),
+    path('user/', views.user, name='all_members'),
+    path('users_details/<slug:slug>', views.users_details, name='users_details'),
 
     # Tilojen listaus ja yksityiskohdat
     path('space/', views.space, name='space'),

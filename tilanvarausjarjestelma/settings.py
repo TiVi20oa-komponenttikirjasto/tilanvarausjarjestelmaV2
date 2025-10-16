@@ -27,7 +27,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -131,6 +130,9 @@ USE_TZ = True
 STATIC_ROOT = BASE_DIR / 'productionfiles'
 
 STATIC_URL = 'static/'
+
+LOGIN_REDIRECT_URL = 'main'
+LOGIN_URL = 'login'
 
 #Add this in your settings.py file:
 STATICFILES_DIRS = [
