@@ -1,7 +1,12 @@
+# KIRJASTOJEN JA MODUULIEN LATAUKSET
+# ==================================
+
 from django.urls import path
 from . import views
 
 # Sovelluksen reitit (URLConf)
+# =============================
+
 urlpatterns = [
     # Pääsivu
     path('', views.main, name='main'),

@@ -1,3 +1,6 @@
+# KIRJASTOJEN JA MODUULIEN LATAUKSET
+# ==================================
+
 from django.apps import AppConfig
 
 # Käyttäjä-sovelluksen konfiguraatio

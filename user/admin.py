@@ -1,5 +1,11 @@
+# KIRJASTOJEN JA MODUULIEN LATAUKSET
+# ==================================
+
 from django.contrib import admin
 from .models import User, Space, Event
+
+# LUOKAT JA RAKENTEET
+# ===================
 
 # Järjestelmänvalvojan rakenne MemberAdmin luokalle, joka hyödyntää UusiKayttaja-mallia
 class MemberAdmin(admin.ModelAdmin):

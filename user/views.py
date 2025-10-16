@@ -1,5 +1,5 @@
-# KIRJASTOT
-# =========
+# KIRJASTOJEN JA MODUULIEN LATAUKSET
+# ==================================
 
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -17,21 +17,37 @@ import datetime
 # FUNKTIOT
 # ========
 
-#TODO: Luotava selkeät kommentit ja docstringit
-
 # Pääsivun näkymä
 def main(request):
-    """
-    Renders the main page of the application.
+    """Render the application's main page.
+
+    Args:
+        request (HttpRequest): The incoming HTTP request.
+
+    Variables:
+        template (django.template.Template): Template instance loaded with
+            'main.html' via django.template.loader.get_template.
+
+    Returns:
+        HttpResponse: Response containing the rendered template.
     """
     template = loader.get_template('main.html')
     return HttpResponse(template.render())
 
-
 # Käyttäjien listausnäkymä
 def user(request):
-    """
-    Renders a page listing all users in the application.
+    """Render a page listing all custom User instances.
+
+    Args:
+        request (HttpRequest): Incoming HTTP request.
+
+    Variables:
+        mymembers (QuerySet of dict): All users returned as dictionaries via .values().
+        template (django.template.Template): Loaded 'all_members.html' template.
+        context (dict): Context passed to the template.
+
+    Returns:
+        HttpResponse: Rendered page containing the members list.
     """
     mymembers = User.objects.all().values()
     template = loader.get_template('all_members.html')
@@ -40,11 +56,24 @@ def user(request):
     }
     return HttpResponse(template.render(context, request))
 
-
 # Yksittäisen käyttäjien tietojen näkymä
 def users_details(request, slug):
-    """
-    Renders a page showing details for a single user.
+    """Render a page showing details for a single user identified by slug.
+
+    Args:
+        request (HttpRequest): Incoming HTTP request.
+        slug (str): Slug identifying the user.
+
+    Variables:
+        mymember (User): The requested User instance.
+        template (django.template.Template): Loaded 'users_details.html' template.
+        context (dict): Context passed to the template.
+
+    Returns:
+        HttpResponse: Rendered user detail page.
+
+    Raises:
+        User.DoesNotExist: If no User with the given slug exists (propagates from .get()).
     """
     mymember = User.objects.get(slug=slug)
     template = loader.get_template('users_details.html')
@@ -53,11 +82,20 @@ def users_details(request, slug):
     }
     return HttpResponse(template.render(context, request))
 
-
 # Tilojen listausnäkymä
 def space(request):
-    """
-    Renders a page listing all spaces in the application.
+    """Render a page listing all Space instances.
+
+    Args:
+        request (HttpRequest): Incoming HTTP request.
+
+    Variables:
+        myspaces (QuerySet of dict): All spaces returned as dictionaries via .values().
+        template (django.template.Template): Loaded 'all_spaces.html' template.
+        context (dict): Context passed to the template.
+
+    Returns:
+        HttpResponse: Rendered page containing the spaces list.
     """
     myspaces = Space.objects.all().values()
     template = loader.get_template('all_spaces.html')
@@ -66,12 +104,25 @@ def space(request):
     }
     return HttpResponse(template.render(context, request))
 
-
 # Yksittäisen tilan tietojen näkymä
 def spaces_details(request, slug):
-  """
-  Renders a page showing details for a single space.
-  """
+  """Render a page showing details for a single space identified by slug.
+
+    Args:
+        request (HttpRequest): Incoming HTTP request.
+        slug (str): Slug identifying the space.
+
+    Variables:
+        myspaces (Space): The requested Space instance (object or 404 raised).
+        template (django.template.Template): Loaded 'spaces_details.html' template.
+        context (dict): Context passed to the template.
+
+    Returns:
+        HttpResponse: Rendered space detail page.
+
+    Raises:
+        Http404: If no Space with the given slug exists (raised by get_object_or_404).
+    """
   myspaces = get_object_or_404(Space, slug=slug)
   template = loader.get_template('spaces_details.html')
   context = {
@@ -79,41 +130,68 @@ def spaces_details(request, slug):
   }
   return HttpResponse(template.render(context, request))
 
-
 # Kalenterinäkymä
 def calendar_view(request):
-  """
-  Renders the calendar page.
-  """
-  return render(request, "calendar.html")
+   """Render the calendar page.
 
+    Args:
+        request (HttpRequest): Incoming HTTP request.
+
+    Returns:
+        HttpResponse: Rendered calendar template via django.shortcuts.render.
+    """
+   return render(request, "calendar.html")
 
 # Palauttaa tilan tapahtumat JSON-muodossa kalenterille
 def events_json(request, space_id):
-    """
-    Returns all events for a given space as JSON for FullCalendar.
-    Events are ordered by start datetime ascending to ensure consistent chronology.
+    """Return all events for a given space as JSON suitable for FullCalendar.
+
+    Args:
+        request (HttpRequest): Incoming HTTP request.
+        space_id (int or str): Identifier of the Space to fetch events for.
+
+    Variables:
+        events (QuerySet): Events filtered by space_id and ordered by 'start'.
+        data (list): List of dicts prepared for JSON serialization.
+
+    Returns:
+        JsonResponse: JSON array of event objects. Each object contains 'id', 'title',
+                      'start' (ISO format), 'end' (ISO format or None), and 'color'.
     """
     events = Event.objects.filter(space_id=space_id).order_by('start')
     data = []
     for event in events:
         data.append({
-            "id": event.id,  # This line is important!
+            "id": event.id,
             "title": event.title,
-            # Return full ISO datetimes (naive or timezone-aware depending on your settings).
             "start": event.start.isoformat(),
             "end": event.end.isoformat() if event.end else None,
             "color": "red" if event.title.lower() == "varattu" else "green"
         })
     return JsonResponse(data, safe=False)
 
-
 # Lisää uusi tapahtuma kalenteriin
 @csrf_exempt
 def add_event(request):
-    """
-    Adds a new event to the calendar for a given space.
-    Checks for overlapping events before creation.
+    """Add a new event to a space's calendar, checking for overlaps.
+
+    Args:
+        request (HttpRequest): Incoming HTTP POST request with JSON body containing:
+            - space_id: idNumber of the Space
+            - title: Event title
+            - start: ISO datetime string
+            - end: ISO datetime string
+
+    Variables:
+        data (dict): Parsed JSON payload.
+        space_id (int): Extracted space identifier.
+        start (datetime): Aware start datetime.
+        end (datetime): Aware end datetime.
+        overlap (bool): Whether a conflicting event exists.
+
+    Returns:
+        JsonResponse: {"status": "ok"} on success, or {"status": "error", "message": "..."} with
+                      appropriate HTTP status on failure (400 for overlap, 500 for parse errors).
     """
     if request.method == "POST":
         data = json.loads(request.body)
@@ -121,7 +199,6 @@ def add_event(request):
         space = Space.objects.get(idNumber=space_id)
         start = timezone.make_aware(datetime.datetime.fromisoformat(data["start"]))
         end = timezone.make_aware(datetime.datetime.fromisoformat(data["end"]))
-        # Tarkista päällekkäisyys
         overlap = Event.objects.filter(
             space_id=space_id,
             start__lt=end,
@@ -138,12 +215,21 @@ def add_event(request):
         )
         return JsonResponse({"status": "ok"})
 
-
 # Poistaa tapahtuman kalenterista
 @csrf_exempt
 def delete_event(request):
-    """
-    Deletes an event from the calendar by its ID.
+    """Delete an event by its ID.
+
+    Args:
+        request (HttpRequest): Incoming HTTP POST request with JSON body containing 'id'.
+
+    Variables:
+        data (dict): Parsed JSON payload.
+        event_id (int): ID of the event to delete.
+
+    Returns:
+        JsonResponse: {"status": "ok"} on successful deletion, or
+                      {"status": "error", "message": "..."} with 404 if not found.
     """
     if request.method == "POST":
         data = json.loads(request.body)
@@ -153,4 +239,3 @@ def delete_event(request):
             return JsonResponse({"status": "ok"})
         except Event.DoesNotExist:
             return JsonResponse({"status": "error", "message": "Varausta ei löytynyt"}, status=404)
-

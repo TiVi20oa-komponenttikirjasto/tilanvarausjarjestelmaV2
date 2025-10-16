@@ -1,4 +1,4 @@
-# KIRJASTOT
+# KIRJASTOJEN JA MODUULIEN LATAUKSET
 # =========
 
 from django.db import models
