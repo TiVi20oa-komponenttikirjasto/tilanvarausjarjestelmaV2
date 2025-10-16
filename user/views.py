@@ -5,10 +5,14 @@ from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
 from django.template import loader
-from .models import User,Space, Event
-from django.shortcuts import get_object_or_404, render
+from .models import User,Space,Event
+from django.shortcuts import get_object_or_404, render, redirect
 from django.utils import timezone
+from django.contrib.auth.models import User as AuthUser
+from django.contrib.auth.hashers import make_password
+from .forms import UserRegistrationForm
 import datetime
+from django.utils.text import slugify
 
 # Käytetty esimerkissä
 # from django.db.models import Q

@@ -3,6 +3,7 @@
 
 from django.urls import path
 from . import views
+from .views import register, registration_success
 
 # Sovelluksen reitit (URLConf)
 # =============================
