@@ -5,10 +5,15 @@ from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
 from django.template import loader
-from .models import User,Space, Event
-from django.shortcuts import get_object_or_404, render
+from .models import User,Space,Event
+from django.shortcuts import get_object_or_404, render, redirect
 from django.utils import timezone
+from django.contrib.auth.models import User as AuthUser
+from django.contrib.auth.hashers import make_password
+from django.contrib import messages
+from .forms import UserRegistrationForm
 import datetime
+from django.utils.text import slugify
 
 # Käytetty esimerkissä
 # from django.db.models import Q
@@ -34,6 +39,41 @@ def main(request):
     template = loader.get_template('main.html')
     return HttpResponse(template.render())
 
+def register(request):
+    """
+    Display and process the user registration form.
+
+    - Uses UserRegistrationForm to create a django.contrib.auth User.
+    - Sets the hashed password.
+    - If a Profile model exists in this app, saves the phone field there.
+    - Redirects to 'registration-success' on success.
+    """
+    if request.method == "POST":
+        form = UserRegistrationForm(request.POST)
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.set_password(form.cleaned_data["password"])
+            user.save()
+            # Save phone to Profile if model exists
+            phone = form.cleaned_data.get("phone")
+            try:
+                from .models import Profile
+            except Exception:
+                Profile = None
+            if Profile and phone:
+                Profile.objects.create(user=user, phone=phone)
+            return redirect("registration-success")
+    else:
+        form = UserRegistrationForm()
+    return render(request, "user/register.html", {"form": form})
+
+# Simple registration success page
+def registration_success(request):
+    """
+    Render a simple registration success page.
+    """
+    return render(request, "user/registration_success.html")
+
 # Käyttäjien listausnäkymä
 def user(request):
     """Render a page listing all custom User instances.
@@ -49,12 +89,13 @@ def user(request):
     Returns:
         HttpResponse: Rendered page containing the members list.
     """
-    mymembers = User.objects.all().values()
-    template = loader.get_template('all_members.html')
+    mymembers = AuthUser.objects.all().values('id','username','email','first_name','last_name')
+    template = loader.get_template('user/all_members.html')
     context = {
         'mymembers': mymembers,
+        #'current_user': request.user,
     }
-    return HttpResponse(template.render(context, request))
+    return HttpResponse(template.render({'mymembers': mymembers}, request))
 
 # Yksittäisen käyttäjien tietojen näkymä
 def users_details(request, slug):
