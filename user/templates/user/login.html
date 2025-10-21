@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+  <meta charset="utf-8">
+  <title>Kirjaudu</title>
+</head>
+<body>
+  <h1>Kirjaudu</h1>
+  {% if form.errors %}
+    <p style="color:red">Väärä käyttäjätunnus tai salasana.</p>
+  {% endif %}
+  <form method="post" action="{% url 'login' %}">
+    {% csrf_token %}
+    <p><label>Käyttäjätunnus: <input type="text" name="username" required></label></p>
+    <p><label>Salasana: <input type="password" name="password" required></label></p>
+    <button type="submit">Kirjaudu</button>
+  </form>
+  <p><a href="{% url 'register' %}">Rekisteröidy</a></p>
+</body>
+</html>

@@ -1,3 +1,6 @@
+<!--
+Tämä sivu näyttää yksittäisen tilan tiedot ja varauskalenterin.
+-->
 {% extends "master.html" %}
 
 {% block title %}
@@ -5,9 +8,18 @@
 {% endblock %}
 
 {% block content %}
+{% load static %}
+<!-- FullCalendar-paketin paikalliset komentosarjat (ladattu ladatusta paketista) -->
+<script src="{% static 'fullcalendar/fullcalendar-6.1.19/packages/core/index.global.min.js' %}"></script>
+<script src="{% static 'fullcalendar/fullcalendar-6.1.19/packages/interaction/index.global.min.js' %}"></script>
+<script src="{% static 'fullcalendar/fullcalendar-6.1.19/packages/daygrid/index.global.min.js' %}"></script>
+<script src="{% static 'fullcalendar/fullcalendar-6.1.19/packages/timegrid/index.global.min.js' %}"></script>
+<script src="{% static 'fullcalendar/fullcalendar-6.1.19/packages/list/index.global.min.js' %}"></script>
+<script src="{% static 'fullcalendar/fullcalendar-6.1.19/packages/rrule/index.global.min.js' %}"></script>
+<script src="{% static 'fullcalendar/fullcalendar-6.1.19/packages/core/locales-all.global.min.js' %}"></script>
 <div class="layout">
   <aside class="sidebar-left">
-    <!-- Left sidebar content here -->
+    <!-- Vasen sivupalkin sisältö -->
   </aside>
   <main class="main-content">
     <!-- Kortti alkaa tästä -->
@@ -75,6 +87,7 @@
       <div id="calendar"></div>
     </div>
 
+<!-- Tyylit ovat FullCalendar-laajennusten injektoimia, erillistä CSS-tiedostoa ei tarvita -->
 <script>
   document.addEventListener("DOMContentLoaded", function () {
     let varatutPaivat = new Set();
@@ -92,10 +105,56 @@
         fetch("/events-json/{{ myspaces.idNumber }}/")
           .then(response => response.json())
           .then(events => {
+            // Diagnoosi lokit: tulosta mitä palvelin palautti, jotta voimme virheenkorjata järjestystä
+            try {
+              console.log('DEBUG: raw event.starts ->', events.map(e => e.start));
+            } catch (e) { console.log('DEBUG: could not map starts', e); }
+
+            // Varmista, että tapahtumat on järjestetty aloituspäivämäärän mukaan (nousevasti).
+            // Järjestä palvelimen tarjoamat ISO-tyyppiset merkkijonot paikallisiin päivämääräkomponentteihin
+            // välttääksesi Date.parse()-aikavyöhykkeen outouksia, ja lajittele sitten numeerisen aikaleiman mukaan.
+            function parseIsoLocal(s) {
+              if (!s) return null;
+              // Jos merkkijono sisältää 'T', käsittele päivämäärä ja aika; muuten vain päivämäärä.
+              const [datePart, timePart] = s.split('T');
+              const [y, mo, d] = datePart.split('-').map(Number);
+              if (!timePart) {
+                return new Date(y, (mo || 1) - 1, d || 1);
+              }
+              // Aikaleima voi sisältää aikavyöhykkeen (Z tai +/-); ignoroi aikavyöhyke ja analysoi paikallinen aika
+              const timeOnly = timePart.split(/Z|\+|-/)[0];
+              const [hh = '0', mm = '0', ss = '0'] = timeOnly.split(':');
+              return new Date(y, (mo || 1) - 1, d || 1, Number(hh), Number(mm), Number(ss));
+            }
+
+            // Diagnoosi: näytä jäsennellyt aikaleimat ennen lajittelua
+            function debugParsedList(arr) {
+              return arr.map(x => {
+                const raw = x && x.start ? x.start : '';
+                const parsed = parseIsoLocal(raw);
+                return { raw, parsedTs: parsed ? parsed.getTime() : null };
+              });
+            }
+            console.log('DEBUG: parsed before sort ->', debugParsedList(events));
+
+            events.sort((a, b) => {
+              const da = parseIsoLocal(a && a.start ? a.start : '');
+              const db = parseIsoLocal(b && b.start ? b.start : '');
+              const ta = da ? da.getTime() : 0;
+              const tb = db ? db.getTime() : 0;
+              return ta - tb;
+            });
+
+            console.log('DEBUG: parsed after sort ->', debugParsedList(events));
+
             varatutPaivat.clear();
             events.forEach(event => {
-              if (event.title.toLowerCase() === "varattu") {
-                varatutPaivat.add(event.start); // nyt event.start on "YYYY-MM-DD"
+              if (event.title && event.title.toLowerCase() === "varattu") {
+                // Normaalisoi palautettu aloitus: jos palvelin lähetti täydellisen päivämäärän ja ajan, ota vain päivämääräosa.
+                let startKey = event.start && event.start.split ? event.start.split("T")[0] : event.start;
+                if (startKey) {
+                  varatutPaivat.add(startKey);
+                }
               }
             });
             successCallback(events);
@@ -106,38 +165,54 @@
       buttonText: { today: 'Tänään' },
       selectable: true,
       select: function(info) {
-  let startDate = new Date(info.startStr + "T00:00:00");
-  let endDate = new Date(info.endStr + "T00:00:00");
-  // Varaa vain päivät välillä [startDate, endDate) eli endDate ei kuulu mukaan
-  while (startDate < endDate) {
-    let dayStr = startDate.toISOString().split("T")[0];
-    fetch("/add-event/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": "{{ csrf_token }}"
-      },
-      body: JSON.stringify({
-        title: selectedType,
-        start: dayStr + "T00:00:00",
-        end: dayStr + "T23:59:59",
-        space_id: "{{ myspaces.idNumber }}"
-      })
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.status === "error") {
-        alert(data.message);
-      } else {
-        calendar.refetchEvents();
-      }
-    });
-    startDate.setDate(startDate.getDate() + 1);
-  }
-  calendar.unselect();
+        // Rakennetaan paikallisia YYYY-MM-DD-merkkijonoja aikavyöhykkeen siirtymien välttämiseksi.
+        function toYMD(d) {
+          const y = d.getFullYear();
+          const m = String(d.getMonth() + 1).padStart(2, '0');
+          const day = String(d.getDate()).padStart(2, '0');
+          return `${y}-${m}-${day}`;
+        }
+
+        // Info.alku ja info.loppu ovat Date-objekteja; info.loppu on eksklusiivinen
+        let cur = new Date(info.start.getFullYear(), info.start.getMonth(), info.start.getDate());
+        const end = new Date(info.end.getFullYear(), info.end.getMonth(), info.end.getDate());
+
+        while (cur < end) {
+          const dayStr = toYMD(cur);
+          fetch("/add-event/", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRFToken": "{{ csrf_token }}"
+            },
+            body: JSON.stringify({
+              title: selectedType,
+              start: dayStr + "T00:00:00",
+              end: dayStr + "T23:59:59",
+              space_id: "{{ myspaces.idNumber }}"
+            })
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.status === "error") {
+              alert(data.message);
+            } else {
+              calendar.refetchEvents();
+            }
+          });
+
+          cur.setDate(cur.getDate() + 1);
+        }
+
+        calendar.unselect();
       },
       dayCellClassNames: function(arg) {
-        const isoDate = arg.date.toISOString().substring(0, 10);
+        // Muotoile päivämäärä paikallisesti muotoon YYYY-MM-DD vastaamaan varatutPaivat-avainarvoja
+        const d = arg.date;
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        const isoDate = `${y}-${m}-${day}`;
         if (varatutPaivat.has(isoDate)) {
           return ["varattu-paiva"];
         }
@@ -150,7 +225,7 @@
 </script>
   </main>
   <aside class="sidebar-right">
-    <!-- Right sidebar content here -->
+    <!-- Oikea sivupalkki sisältö täällä -->
   </aside>
 </div>
 {% endblock %}

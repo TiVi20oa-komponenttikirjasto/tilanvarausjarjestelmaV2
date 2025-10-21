@@ -1,3 +1,6 @@
+<!--
+Tämä sivu näyttää kalenterin, jossa näkyvät tilojen varaukset ja vapaat ajat.
+-->
 {% extends "master.html" %}
 
 {% block title %}
@@ -12,7 +15,7 @@
       var calendarEl = document.getElementById("calendar");
       var calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: "dayGridMonth",
-        events: "/events-json/1/", // Vaihda 1 haluamasi tilan id:ksi
+        events: "/events-json/1/",
         locale: 'fi',
         buttonText: {
           today: 'Tänään'
