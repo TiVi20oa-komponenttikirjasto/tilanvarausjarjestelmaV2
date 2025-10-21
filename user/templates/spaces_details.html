@@ -82,7 +82,8 @@ Tämä sivu näyttää yksittäisen tilan tiedot ja varauskalenterin.
     </div>
     <div class="calendar-section">
       <div>
-        <button id="btnVarattu" style="background:red;color:white;">Varaa</button>
+        <button id="btnConfirmBooking" style="background:#007bff;color:white;padding:6px 10px;border-radius:4px;">Vahvista varaus</button>
+        <button id="btnClearSelection" style="margin-left:8px;">Tyhjennä valinta</button>
       </div>
       <!-- Varaajan tiedot: etunimi, sukunimi, sähköposti (SIIRRETTY YLÖSPÄIN) -->
       <div id="booking-form" style="max-width:520px;margin:16px auto;">
@@ -97,58 +98,51 @@ Tämä sivu näyttää yksittäisen tilan tiedot ja varauskalenterin.
         <div id="booking-message" style="margin-top:8px;font-weight:600;"></div>
       </div>
       <div id="calendar"></div>
+      <!-- Toiminnot myös kalenterin alle (käyttäjä voi vahvistaa tai tyhjentää valinnan tästäkin) -->
+      <div style="margin-top:12px;text-align:left;">
+        <button id="btnConfirmBookingBottom" style="background:#007bff;color:white;padding:6px 10px;border-radius:4px;">Vahvista varaus</button>
+        <button id="btnClearSelectionBottom" style="margin-left:8px;">Tyhjennä valinta</button>
+      </div>
     </div>
 
 <!-- Tyylit ovat FullCalendar-laajennusten injektoimia, erillistä CSS-tiedostoa ei tarvita -->
 <script>
   document.addEventListener("DOMContentLoaded", function () {
-    let varatutPaivat = new Set();
-    var selectedType = "varattu"; // Oletus
+    // State
+    const varatutPaivat = new Set();
+    let pendingDays = [];
+    let pendingEvents = [];
+    const selectedType = 'varattu';
 
-    document.getElementById("btnVarattu").onclick = function() {
-      selectedType = "varattu";
-    };
+    const calendarEl = document.getElementById('calendar');
 
-    var calendarEl = document.getElementById("calendar");
+    function toYMD(d) {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    }
 
-    var calendar = new FullCalendar.Calendar(calendarEl, {
-      initialView: "dayGridMonth",
+    function parseIsoLocal(s) {
+      if (!s) return null;
+      const [datePart, timePart] = s.split('T');
+      const [y, mo, d] = datePart.split('-').map(Number);
+      if (!timePart) return new Date(y, (mo || 1) - 1, d || 1);
+      const timeOnly = timePart.split(/Z|\+|-/)[0];
+      const [hh = '0', mm = '0', ss = '0'] = timeOnly.split(':');
+      return new Date(y, (mo || 1) - 1, d || 1, Number(hh), Number(mm), Number(ss));
+    }
+
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+      initialView: 'dayGridMonth',
+      locale: 'fi',
+      buttonText: { today: 'Tänään' },
+      selectable: true,
       events: function(fetchInfo, successCallback, failureCallback) {
-        fetch("/events-json/{{ myspaces.idNumber }}/")
-          .then(response => response.json())
+        fetch('/events-json/{{ myspaces.idNumber }}/')
+          .then(r => r.json())
           .then(events => {
-            // Diagnoosi lokit: tulosta mitä palvelin palautti, jotta voimme virheenkorjata järjestystä
-            try {
-              console.log('DEBUG: raw event.starts ->', events.map(e => e.start));
-            } catch (e) { console.log('DEBUG: could not map starts', e); }
-
-            // Varmista, että tapahtumat on järjestetty aloituspäivämäärän mukaan (nousevasti).
-            // Järjestä palvelimen tarjoamat ISO-tyyppiset merkkijonot paikallisiin päivämääräkomponentteihin
-            // välttääksesi Date.parse()-aikavyöhykkeen outouksia, ja lajittele sitten numeerisen aikaleiman mukaan.
-            function parseIsoLocal(s) {
-              if (!s) return null;
-              // Jos merkkijono sisältää 'T', käsittele päivämäärä ja aika; muuten vain päivämäärä.
-              const [datePart, timePart] = s.split('T');
-              const [y, mo, d] = datePart.split('-').map(Number);
-              if (!timePart) {
-                return new Date(y, (mo || 1) - 1, d || 1);
-              }
-              // Aikaleima voi sisältää aikavyöhykkeen (Z tai +/-); ignoroi aikavyöhyke ja analysoi paikallinen aika
-              const timeOnly = timePart.split(/Z|\+|-/)[0];
-              const [hh = '0', mm = '0', ss = '0'] = timeOnly.split(':');
-              return new Date(y, (mo || 1) - 1, d || 1, Number(hh), Number(mm), Number(ss));
-            }
-
-            // Diagnoosi: näytä jäsennellyt aikaleimat ennen lajittelua
-            function debugParsedList(arr) {
-              return arr.map(x => {
-                const raw = x && x.start ? x.start : '';
-                const parsed = parseIsoLocal(raw);
-                return { raw, parsedTs: parsed ? parsed.getTime() : null };
-              });
-            }
-            console.log('DEBUG: parsed before sort ->', debugParsedList(events));
-
+            // parse and sort events by local timestamp
             events.sort((a, b) => {
               const da = parseIsoLocal(a && a.start ? a.start : '');
               const db = parseIsoLocal(b && b.start ? b.start : '');
@@ -156,198 +150,133 @@ Tämä sivu näyttää yksittäisen tilan tiedot ja varauskalenterin.
               const tb = db ? db.getTime() : 0;
               return ta - tb;
             });
-
-            console.log('DEBUG: parsed after sort ->', debugParsedList(events));
-
+            // fill varatutPaivat set
             varatutPaivat.clear();
-            events.forEach(event => {
-              if (event.title && event.title.toLowerCase() === "varattu") {
-                // Normaalisoi palautettu aloitus: jos palvelin lähetti täydellisen päivämäärän ja ajan, ota vain päivämääräosa.
-                let startKey = event.start && event.start.split ? event.start.split("T")[0] : event.start;
-                if (startKey) {
-                  varatutPaivat.add(startKey);
-                }
+            events.forEach(ev => {
+              if (ev.title && ev.title.toLowerCase() === 'varattu') {
+                const key = ev.start && ev.start.split ? ev.start.split('T')[0] : ev.start;
+                if (key) varatutPaivat.add(key);
               }
             });
             successCallback(events);
           })
           .catch(failureCallback);
       },
-      locale: 'fi',
-      buttonText: { today: 'Tänään' },
-      selectable: true,
-      // Estä valinta, jos sisältää jo varattuja päiviä
+      // block selection if any day is in the past or already booked
       selectAllow: function(selectInfo) {
-        function toYMD(d) {
-          const y = d.getFullYear();
-          const m = String(d.getMonth() + 1).padStart(2, '0');
-          const day = String(d.getDate()).padStart(2, '0');
-          return `${y}-${m}-${day}`;
-        }
         const start = new Date(selectInfo.start.getFullYear(), selectInfo.start.getMonth(), selectInfo.start.getDate());
         const end = new Date(selectInfo.end.getFullYear(), selectInfo.end.getMonth(), selectInfo.end.getDate());
-        // Estä menneet päivät: vertaillaan paikalliseen tämän päivän päivämäärään
         const today = new Date();
-        const todayYMD = toYMD(new Date(today.getFullYear(), today.getMonth(), today.getDate()));
+        const todayKey = toYMD(new Date(today.getFullYear(), today.getMonth(), today.getDate()));
         let cur = new Date(start);
         while (cur < end) {
-          const curY = toYMD(cur);
-          if (curY < todayYMD) {
-            return false;
-          }
-          if (varatutPaivat.has(curY)) {
-            return false;
-          }
+          const key = toYMD(cur);
+          if (key < todayKey) return false;
+          if (varatutPaivat.has(key)) return false;
           cur.setDate(cur.getDate() + 1);
         }
         return true;
       },
       select: function(info) {
-        // Rakennetaan paikallisia YYYY-MM-DD-merkkijonoja aikavyöhykkeen siirtymien välttämiseksi.
-        function toYMD(d) {
-          const y = d.getFullYear();
-          const m = String(d.getMonth() + 1).padStart(2, '0');
-          const day = String(d.getDate()).padStart(2, '0');
-          return `${y}-${m}-${day}`;
-        }
-        // Early check: jos jokin valituista päivistä on jo varattu, estä jatko
-        const startChk = new Date(info.start.getFullYear(), info.start.getMonth(), info.start.getDate());
-        const endChk = new Date(info.end.getFullYear(), info.end.getMonth(), info.end.getDate());
-        let curChk = new Date(startChk);
-        while (curChk < endChk) {
-          if (varatutPaivat.has(toYMD(curChk))) {
-            const messageEl = document.getElementById('booking-message');
-            if (messageEl) {
-              messageEl.style.color = 'crimson';
-              messageEl.textContent = 'Valittu alue sisältää jo varattuja päiviä.';
-            }
-            calendar.unselect();
-            return;
-          }
-          curChk.setDate(curChk.getDate() + 1);
-        }
-        // Info.alku ja info.loppu ovat Date-objekteja; info.loppu on eksklusiivinen
-        let startDate = new Date(info.start.getFullYear(), info.start.getMonth(), info.start.getDate());
+        // build YMD strings for selected range
+        const startDate = new Date(info.start.getFullYear(), info.start.getMonth(), info.start.getDate());
         const endDate = new Date(info.end.getFullYear(), info.end.getMonth(), info.end.getDate());
-
-        // Read and validate booking form once before making requests
-        const firstNameEl = document.getElementById('first_name');
-        const lastNameEl = document.getElementById('last_name');
-        const emailEl = document.getElementById('email');
-        const messageEl = document.getElementById('booking-message');
-        const firstName = firstNameEl ? firstNameEl.value.trim() : '';
-        const lastName = lastNameEl ? lastNameEl.value.trim() : '';
-        const email = emailEl ? emailEl.value.trim() : '';
-
-        // Simple client-side validation: require first name and a basic email pattern
-        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!firstName) {
-          messageEl.style.color = 'crimson';
-          messageEl.textContent = 'Anna varauksen tekijän etunimi, sukunimi ja sähköpostiosoite.';
-          calendar.unselect();
-          return;
-        }
-        if (!email || !emailPattern.test(email)) {
-          messageEl.style.color = 'crimson';
-          messageEl.textContent = 'Anna kelvollinen sähköpostiosoite.';
-          calendar.unselect();
-          return;
-        }
-
-        // Build list of day strings to book
         const dayStrs = [];
         let cur = new Date(startDate);
         while (cur < endDate) {
           dayStrs.push(toYMD(cur));
           cur.setDate(cur.getDate() + 1);
         }
-
-        if (dayStrs.length === 0) {
-          messageEl.style.color = 'crimson';
-          messageEl.textContent = 'Valitse vähintään yksi päivä.';
-          calendar.unselect();
-          return;
-        }
-
-        // Filter out days that are already booked or in the past (double-check client-side)
-        function todayYMD() {
-          const t = new Date();
-          return `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
-        }
-        const todayKey = todayYMD();
-        const filteredDays = dayStrs.filter(d => {
-          if (d < todayKey) return false;
-          if (varatutPaivat.has(d)) return false;
-          return true;
+        // replace pending visuals
+        pendingDays = dayStrs;
+        pendingEvents.forEach(e => e.remove());
+        pendingEvents = [];
+        pendingDays.forEach(d => {
+          try {
+            const ev = calendar.addEvent({ start: d, allDay: true, display: 'background', classNames: ['pending-varaus'] });
+            pendingEvents.push(ev);
+          } catch (e) {}
         });
-
-        if (filteredDays.length === 0) {
-          messageEl.style.color = 'crimson';
-          messageEl.textContent = 'Valittu alue sisältää vain menneitä tai varattuja päiviä.';
-          calendar.unselect();
-          return;
-        }
-
-        // Send requests sequentially to report the first failure clearly
-        (async function() {
-          const results = [];
-          for (const dayStr of filteredDays) {
-            try {
-              const resp = await fetch("/add-event/", {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                  "X-CSRFToken": "{{ csrf_token }}"
-                },
-                body: JSON.stringify({
-                  title: selectedType,
-                  start: dayStr + "T00:00:00",
-                  end: dayStr + "T23:59:59",
-                  space_id: "{{ myspaces.idNumber }}",
-                  first_name: firstName,
-                  last_name: lastName,
-                  email: email
-                })
-              });
-              const json = await resp.json();
-              results.push(json);
-              if (json.status === 'error') {
-                messageEl.style.color = 'crimson';
-                messageEl.textContent = `Varauksen epäonnistui päivälle ${dayStr}: ${json.message || 'Virhe'}`;
-                calendar.unselect();
-                return;
-              }
-            } catch (e) {
-              messageEl.style.color = 'crimson';
-              messageEl.textContent = `Verkkovirhe yritettäessä ${dayStr}`;
-              calendar.unselect();
-              return;
-            }
+        const messageEl = document.getElementById('booking-message');
+        if (messageEl) {
+          if (pendingDays.length === 0) {
+            messageEl.style.color = 'crimson';
+            messageEl.textContent = 'Valitse vähintään yksi päivä.';
+          } else {
+            messageEl.style.color = '#333';
+            messageEl.textContent = `Valitut päivät: ${pendingDays.join(', ')} — paina "Vahvista varaus".`;
           }
-
-          // Kaikki päivät onnistuneet
-          messageEl.style.color = 'green';
-          messageEl.textContent = `Varaukset tallennettu: ${results.length} päivä(t).`;
-          // Päivitä kalenterin tapahtumat ja varatut päivät
-          calendar.refetchEvents();
-          calendar.render();
-        })().finally(() => calendar.unselect());
+        }
+        calendar.unselect();
       },
       dayCellClassNames: function(arg) {
-        // Muotoile päivämäärä paikallisesti muotoon YYYY-MM-DD vastaamaan varatutPaivat-avainarvoja
-        const d = arg.date;
-        const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        const isoDate = `${y}-${m}-${day}`;
-        if (varatutPaivat.has(isoDate)) {
-          return ["varattu-paiva"];
-        }
+        const isoDate = toYMD(arg.date);
+        if (varatutPaivat.has(isoDate)) return ['varattu-paiva'];
+        if (pendingDays && pendingDays.indexOf(isoDate) !== -1) return ['pending-varaus'];
         return [];
       }
     });
 
     calendar.render();
+
+    // Clear selection helper and listeners for both top and bottom buttons
+    function clearSelection() {
+      pendingDays = [];
+      try { pendingEvents.forEach(e => e.remove()); } catch (e) {}
+      // Also remove any calendar events that might still carry the pending class
+      try {
+        calendar.getEvents().forEach(ev => {
+          try {
+            if (ev.classNames && ev.classNames.indexOf('pending-varaus') !== -1) ev.remove();
+          } catch (er) {}
+        });
+      } catch (er) {}
+      pendingEvents = [];
+      const messageEl = document.getElementById('booking-message');
+      if (messageEl) messageEl.textContent = '';
+      // Force a re-render to update day cell classes
+      try { calendar.render(); } catch (e) {}
+    }
+
+    const btnClear = document.getElementById('btnClearSelection');
+    if (btnClear) btnClear.addEventListener('click', clearSelection);
+    const btnClearBottom = document.getElementById('btnClearSelectionBottom');
+    if (btnClearBottom) btnClearBottom.addEventListener('click', clearSelection);
+
+    // Confirm booking button
+    document.getElementById('btnConfirmBooking').addEventListener('click', function() {
+      const messageEl = document.getElementById('booking-message');
+      const firstNameEl = document.getElementById('first_name');
+      const lastNameEl = document.getElementById('last_name');
+      const emailEl = document.getElementById('email');
+      const firstName = firstNameEl ? firstNameEl.value.trim() : '';
+      const lastName = lastNameEl ? lastNameEl.value.trim() : '';
+      const email = emailEl ? emailEl.value.trim() : '';
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!firstName) { if (messageEl) { messageEl.style.color='crimson'; messageEl.textContent='Anna varauksen tekijän etunimi.';} return; }
+      if (!email || !emailPattern.test(email)) { if (messageEl) { messageEl.style.color='crimson'; messageEl.textContent='Anna kelvollinen sähköpostiosoite.';} return; }
+      if (!pendingDays || pendingDays.length === 0) { if (messageEl) { messageEl.style.color='crimson'; messageEl.textContent='Ei valittuja päiviä.';} return; }
+
+      // double-check pendingDays against varatut and today
+      const today = toYMD(new Date());
+      const toSend = pendingDays.filter(d => d >= today && !varatutPaivat.has(d));
+      if (toSend.length === 0) { if (messageEl) { messageEl.style.color='crimson'; messageEl.textContent='Valitut päivät ovat menneitä tai jo varattuja.';} pendingEvents.forEach(e=>e.remove()); pendingEvents=[]; pendingDays=[]; calendar.refetchEvents(); return; }
+
+      (async function(){
+        for (const dayStr of toSend) {
+          try {
+            const resp = await fetch('/add-event/', { method:'POST', headers:{ 'Content-Type':'application/json', 'X-CSRFToken':'{{ csrf_token }}' }, body: JSON.stringify({ title: selectedType, start: dayStr + 'T00:00:00', end: dayStr + 'T23:59:59', space_id: '{{ myspaces.idNumber }}', first_name: firstName, last_name: lastName, email: email }) });
+            const json = await resp.json();
+            if (json.status === 'error') { if (messageEl) { messageEl.style.color='crimson'; messageEl.textContent=`Varauksen epäonnistui päivälle ${dayStr}: ${json.message || 'Virhe'}`; } pendingEvents.forEach(e=>e.remove()); pendingEvents=[]; pendingDays=[]; calendar.refetchEvents(); return; }
+          } catch (e) { if (messageEl) { messageEl.style.color='crimson'; messageEl.textContent=`Verkkovirhe yritettäessä ${dayStr}`; } pendingEvents.forEach(e=>e.remove()); pendingEvents=[]; pendingDays=[]; calendar.refetchEvents(); return; }
+        }
+        if (messageEl) { messageEl.style.color='green'; messageEl.textContent=`Varaukset tallennettu: ${toSend.length} päivä(t).`; }
+        pendingEvents.forEach(e=>e.remove()); pendingEvents=[]; pendingDays=[]; calendar.refetchEvents();
+      })();
+    });
+    document.getElementById('btnConfirmBookingBottom').addEventListener('click', function() {
+      document.getElementById('btnConfirmBooking').click();
+    });
   });
 </script>
   </main>
