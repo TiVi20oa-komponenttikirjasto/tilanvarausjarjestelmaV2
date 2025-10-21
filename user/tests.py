@@ -1,3 +1,6 @@
+# KIRJASTOJEN JA MODUULIEN LATAUKSET
+# ==================================
+
 from django.test import TestCase
 from user.models import Event, Space
 
