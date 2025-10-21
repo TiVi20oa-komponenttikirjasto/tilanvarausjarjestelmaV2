@@ -45,9 +45,9 @@ class EventAdmin(admin.ModelAdmin):
     ordering (tuple): Default ordering for the admin list view.
   """
 
-  list_display = ('title', 'space', 'start_date', 'end_date')
+  list_display = ('title', 'space', 'start_date', 'end_date', 'reserver_email')
   list_filter = ('space', 'title')
-  search_fields = ('title',)
+  search_fields = ('title','user__email')
   ordering = ('start', 'id')
 
   # Metodi joka palauttaa vain alkamis päivämäärän, jotta vältytään aikavyöhykkeisiin liittyviltä ongelmilta
@@ -79,6 +79,14 @@ class EventAdmin(admin.ModelAdmin):
     return obj.end.date() if obj.end else None
   end_date.admin_order_field = 'end'
   end_date.short_description = 'End'
+
+  def reserver_email(self, obj):
+    """Return the email address of the user who made the reservation."""
+    if obj.user:
+      return obj.user.email
+    return None
+  reserver_email.admin_order_field = 'user__email'
+  reserver_email.short_description = 'Sähköposti'
 
 # Rekisteröidään mallit admin-käyttöliittymään
 admin.site.register(User, MemberAdmin)

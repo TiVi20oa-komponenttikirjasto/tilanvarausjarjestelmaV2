@@ -84,6 +84,18 @@ Tämä sivu näyttää yksittäisen tilan tiedot ja varauskalenterin.
       <div>
         <button id="btnVarattu" style="background:red;color:white;">Varaa</button>
       </div>
+      <!-- Varaajan tiedot: etunimi, sukunimi, sähköposti (SIIRRETTY YLÖSPÄIN) -->
+      <div id="booking-form" style="max-width:520px;margin:16px auto;">
+        <h3>Varaajan tiedot</h3>
+        <label for="first_name">Etunimi</label>
+        <input id="first_name" name="first_name" type="text" class="form-control" placeholder="Etunimi" />
+        <label for="last_name">Sukunimi</label>
+        <input id="last_name" name="last_name" type="text" class="form-control" placeholder="Sukunimi" />
+        <label for="email">Sähköposti</label>
+        <input id="email" name="email" type="email" class="form-control" placeholder="sahkoposti@esimerkki.fi" />
+        <p style="font-size:0.9em;color:#666;margin-top:6px;">Täytä tiedot ennen päiväaluetta valitessasi — tiedot liitetään varaukseen.</p>
+        <div id="booking-message" style="margin-top:8px;font-weight:600;"></div>
+      </div>
       <div id="calendar"></div>
     </div>
 
@@ -164,6 +176,32 @@ Tämä sivu näyttää yksittäisen tilan tiedot ja varauskalenterin.
       locale: 'fi',
       buttonText: { today: 'Tänään' },
       selectable: true,
+      // Estä valinta, jos sisältää jo varattuja päiviä
+      selectAllow: function(selectInfo) {
+        function toYMD(d) {
+          const y = d.getFullYear();
+          const m = String(d.getMonth() + 1).padStart(2, '0');
+          const day = String(d.getDate()).padStart(2, '0');
+          return `${y}-${m}-${day}`;
+        }
+        const start = new Date(selectInfo.start.getFullYear(), selectInfo.start.getMonth(), selectInfo.start.getDate());
+        const end = new Date(selectInfo.end.getFullYear(), selectInfo.end.getMonth(), selectInfo.end.getDate());
+        // Estä menneet päivät: vertaillaan paikalliseen tämän päivän päivämäärään
+        const today = new Date();
+        const todayYMD = toYMD(new Date(today.getFullYear(), today.getMonth(), today.getDate()));
+        let cur = new Date(start);
+        while (cur < end) {
+          const curY = toYMD(cur);
+          if (curY < todayYMD) {
+            return false;
+          }
+          if (varatutPaivat.has(curY)) {
+            return false;
+          }
+          cur.setDate(cur.getDate() + 1);
+        }
+        return true;
+      },
       select: function(info) {
         // Rakennetaan paikallisia YYYY-MM-DD-merkkijonoja aikavyöhykkeen siirtymien välttämiseksi.
         function toYMD(d) {
@@ -172,39 +210,128 @@ Tämä sivu näyttää yksittäisen tilan tiedot ja varauskalenterin.
           const day = String(d.getDate()).padStart(2, '0');
           return `${y}-${m}-${day}`;
         }
-
-        // Info.alku ja info.loppu ovat Date-objekteja; info.loppu on eksklusiivinen
-        let cur = new Date(info.start.getFullYear(), info.start.getMonth(), info.start.getDate());
-        const end = new Date(info.end.getFullYear(), info.end.getMonth(), info.end.getDate());
-
-        while (cur < end) {
-          const dayStr = toYMD(cur);
-          fetch("/add-event/", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "X-CSRFToken": "{{ csrf_token }}"
-            },
-            body: JSON.stringify({
-              title: selectedType,
-              start: dayStr + "T00:00:00",
-              end: dayStr + "T23:59:59",
-              space_id: "{{ myspaces.idNumber }}"
-            })
-          })
-          .then(response => response.json())
-          .then(data => {
-            if (data.status === "error") {
-              alert(data.message);
-            } else {
-              calendar.refetchEvents();
+        // Early check: jos jokin valituista päivistä on jo varattu, estä jatko
+        const startChk = new Date(info.start.getFullYear(), info.start.getMonth(), info.start.getDate());
+        const endChk = new Date(info.end.getFullYear(), info.end.getMonth(), info.end.getDate());
+        let curChk = new Date(startChk);
+        while (curChk < endChk) {
+          if (varatutPaivat.has(toYMD(curChk))) {
+            const messageEl = document.getElementById('booking-message');
+            if (messageEl) {
+              messageEl.style.color = 'crimson';
+              messageEl.textContent = 'Valittu alue sisältää jo varattuja päiviä.';
             }
-          });
+            calendar.unselect();
+            return;
+          }
+          curChk.setDate(curChk.getDate() + 1);
+        }
+        // Info.alku ja info.loppu ovat Date-objekteja; info.loppu on eksklusiivinen
+        let startDate = new Date(info.start.getFullYear(), info.start.getMonth(), info.start.getDate());
+        const endDate = new Date(info.end.getFullYear(), info.end.getMonth(), info.end.getDate());
 
+        // Read and validate booking form once before making requests
+        const firstNameEl = document.getElementById('first_name');
+        const lastNameEl = document.getElementById('last_name');
+        const emailEl = document.getElementById('email');
+        const messageEl = document.getElementById('booking-message');
+        const firstName = firstNameEl ? firstNameEl.value.trim() : '';
+        const lastName = lastNameEl ? lastNameEl.value.trim() : '';
+        const email = emailEl ? emailEl.value.trim() : '';
+
+        // Simple client-side validation: require first name and a basic email pattern
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!firstName) {
+          messageEl.style.color = 'crimson';
+          messageEl.textContent = 'Anna varauksen tekijän etunimi, sukunimi ja sähköpostiosoite.';
+          calendar.unselect();
+          return;
+        }
+        if (!email || !emailPattern.test(email)) {
+          messageEl.style.color = 'crimson';
+          messageEl.textContent = 'Anna kelvollinen sähköpostiosoite.';
+          calendar.unselect();
+          return;
+        }
+
+        // Build list of day strings to book
+        const dayStrs = [];
+        let cur = new Date(startDate);
+        while (cur < endDate) {
+          dayStrs.push(toYMD(cur));
           cur.setDate(cur.getDate() + 1);
         }
 
-        calendar.unselect();
+        if (dayStrs.length === 0) {
+          messageEl.style.color = 'crimson';
+          messageEl.textContent = 'Valitse vähintään yksi päivä.';
+          calendar.unselect();
+          return;
+        }
+
+        // Filter out days that are already booked or in the past (double-check client-side)
+        function todayYMD() {
+          const t = new Date();
+          return `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
+        }
+        const todayKey = todayYMD();
+        const filteredDays = dayStrs.filter(d => {
+          if (d < todayKey) return false;
+          if (varatutPaivat.has(d)) return false;
+          return true;
+        });
+
+        if (filteredDays.length === 0) {
+          messageEl.style.color = 'crimson';
+          messageEl.textContent = 'Valittu alue sisältää vain menneitä tai varattuja päiviä.';
+          calendar.unselect();
+          return;
+        }
+
+        // Send requests sequentially to report the first failure clearly
+        (async function() {
+          const results = [];
+          for (const dayStr of filteredDays) {
+            try {
+              const resp = await fetch("/add-event/", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  "X-CSRFToken": "{{ csrf_token }}"
+                },
+                body: JSON.stringify({
+                  title: selectedType,
+                  start: dayStr + "T00:00:00",
+                  end: dayStr + "T23:59:59",
+                  space_id: "{{ myspaces.idNumber }}",
+                  first_name: firstName,
+                  last_name: lastName,
+                  email: email
+                })
+              });
+              const json = await resp.json();
+              results.push(json);
+              if (json.status === 'error') {
+                messageEl.style.color = 'crimson';
+                messageEl.textContent = `Varauksen epäonnistui päivälle ${dayStr}: ${json.message || 'Virhe'}`;
+                calendar.unselect();
+                return;
+              }
+            } catch (e) {
+              messageEl.style.color = 'crimson';
+              messageEl.textContent = `Verkkovirhe yritettäessä ${dayStr}`;
+              calendar.unselect();
+              return;
+            }
+          }
+
+          // Kaikki päivät onnistuneet
+          messageEl.style.color = 'green';
+          messageEl.textContent = `Varaukset tallennettu: ${results.length} päivä(t).`;
+          // Päivitä kalenterin tapahtumat ja varatut päivät
+          calendar.refetchEvents();
+          calendar.render();
+        })().finally(() => calendar.unselect());
       },
       dayCellClassNames: function(arg) {
         // Muotoile päivämäärä paikallisesti muotoon YYYY-MM-DD vastaamaan varatutPaivat-avainarvoja

@@ -67,7 +67,7 @@ def register(request):
         form = UserRegistrationForm()
     return render(request, "user/register.html", {"form": form})
 
-# Simple registration success page
+# Kun rekisteröinti onnistuu
 def registration_success(request):
     """
     Render a simple registration success page.
@@ -240,6 +240,10 @@ def add_event(request):
         space = Space.objects.get(idNumber=space_id)
         start = timezone.make_aware(datetime.datetime.fromisoformat(data["start"]))
         end = timezone.make_aware(datetime.datetime.fromisoformat(data["end"]))
+        # Reject events that start in the past (compare dates in server timezone)
+        today = timezone.localtime(timezone.now()).date()
+        if start.date() < today:
+            return JsonResponse({"status": "error", "message": "Et voi varata menneitä päiviä."}, status=400)
         overlap = Event.objects.filter(
             space_id=space_id,
             start__lt=end,
@@ -247,14 +251,44 @@ def add_event(request):
         ).exists()
         if overlap:
             return JsonResponse({"status": "error", "message": "Päällekkäinen varaus!"}, status=400)
-        space = Space.objects.get(idNumber=space_id)
-        Event.objects.create(
+
+        # Collect reserver info (require first_name and email)
+        first_name = data.get('first_name', '').strip()
+        last_name = data.get('last_name', '').strip()
+        email = data.get('email', '').strip()
+
+        # Basic server-side validation
+        if not first_name:
+            return JsonResponse({"status": "error", "message": "Etunimi vaaditaan."}, status=400)
+        if not email:
+            return JsonResponse({"status": "error", "message": "Sähköposti vaaditaan."}, status=400)
+
+        # Find or create a user in the custom User model by email when provided,
+        # otherwise create a user entry using a slugified name.
+        user_obj = None
+        if email:
+            user_obj, created = User.objects.get_or_create(email=email, defaults={
+                'firstname': first_name or 'Tuntematon',
+                'lastname': last_name or '',
+                'slug': slugify((first_name + ' ' + last_name)[:50]) if (first_name or last_name) else slugify(email)
+            })
+        else:
+            # If no email, create by name (may duplicate)
+            slug_candidate = slugify((first_name + ' ' + last_name)[:50]) or f'user-{timezone.now().timestamp()}'
+            user_obj, created = User.objects.get_or_create(slug=slug_candidate, defaults={
+                'firstname': first_name or 'Tuntematon',
+                'lastname': last_name or '',
+                'email': email or None
+            })
+
+        event = Event.objects.create(
             space=space,
+            user=user_obj,
             title=data["title"],
             start=start,
             end=end
         )
-        return JsonResponse({"status": "ok"})
+        return JsonResponse({"status": "ok", "event_id": event.id})
 
 # Poistaa tapahtuman kalenterista
 @csrf_exempt
