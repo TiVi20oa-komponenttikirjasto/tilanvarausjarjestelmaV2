@@ -1,3 +1,7 @@
+<!--
+Tämä sivu näyttää kaikki järjestelmän käyttäjät listana.
+-->
+
 {% extends "master.html" %}
 
 {% block title %}
@@ -19,8 +23,10 @@
       <p>Lista kaikista käyttäjistä järjestelmässä.</p>
 
       <ul>
-        {% for member in mymembers %}
-          <li>{{ member.username }} ({{ member.email }})</li>
+        {% for x in mymembers %}
+          <li>
+            <a href="users_details/{{ x.slug }}">{{ x.firstname }} {{ x.lastname }}</a>
+          </li>
         {% endfor %}
       </ul>
     </div>
