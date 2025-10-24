@@ -37,7 +37,7 @@ def main(request):
         HttpResponse: Response containing the rendered template.
     """
     template = loader.get_template('main.html')
-    return HttpResponse(template.render())
+    return HttpResponse(template.render({}, request))
 
 def register(request):
     """

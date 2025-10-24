@@ -1,12 +1,21 @@
-<!DOCTYPE html>
-<html lang="fi">
-<head>
-  <meta charset="utf-8">
-  <title>Rekisteröinti onnistui</title>
-</head>
-<body>
-  <h1>Rekisteröinti onnistui</h1>
-  <p>Käyttäjä luotu onnistuneesti.</p>
-  <p><a href="{% url 'login' %}">Kirjaudu sisään</a> tai palaa <a href="{% url 'main' %}">etusivulle</a>.</p>
-</body>
-</html>
+{% extends "master.html" %}
+
+{% block title %}
+  Tilanvarausjarjestelma
+{% endblock %}
+
+{% block content %}
+  <head>
+    <title>Rekisteröinti onnistui</title>
+  </head>
+  
+  <body>
+    <h1>Rekisteröinti onnistui</h1>
+    <p>Käyttäjä luotu onnistuneesti.</p>
+    <p>
+      <a href="{% url 'login' %}"><button class="btn btn-primary">Kirjaudu sisään</button></a>
+        tai palaa 
+      <a href="{% url 'main' %}"><button class="btn btn-primary">etusivulle</button></a>
+    </p>
+  </body>
+{% endblock %}

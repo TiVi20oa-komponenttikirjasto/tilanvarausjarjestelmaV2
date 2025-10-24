@@ -81,9 +81,9 @@ Tämä sivu näyttää yksittäisen tilan tiedot ja varauskalenterin.
       </div>
     </div>
     <div class="calendar-section">
-      <div>
+  <div style="display:flex;justify-content:flex-end;gap:8px;align-self:flex-end;">
         <button id="btnConfirmBooking" style="background:#007bff;color:white;padding:6px 10px;border-radius:4px;">Vahvista varaus</button>
-        <button id="btnClearSelection" style="margin-left:8px;">Tyhjennä valinta</button>
+  <button id="btnClearSelection">Tyhjennä valinnat</button>
       </div>
       <!-- Varaajan tiedot: etunimi, sukunimi, sähköposti (SIIRRETTY YLÖSPÄIN) -->
       <div id="booking-form" style="max-width:520px;margin:16px auto;">
@@ -99,9 +99,9 @@ Tämä sivu näyttää yksittäisen tilan tiedot ja varauskalenterin.
       </div>
       <div id="calendar"></div>
       <!-- Toiminnot myös kalenterin alle (käyttäjä voi vahvistaa tai tyhjentää valinnan tästäkin) -->
-      <div style="margin-top:12px;text-align:left;">
+  <div style="margin-top:12px;display:flex;justify-content:flex-end;gap:8px;align-self:flex-end;">
         <button id="btnConfirmBookingBottom" style="background:#007bff;color:white;padding:6px 10px;border-radius:4px;">Vahvista varaus</button>
-        <button id="btnClearSelectionBottom" style="margin-left:8px;">Tyhjennä valinta</button>
+  <button id="btnClearSelectionBottom">Tyhjennä valinnat</button>
       </div>
     </div>
 
@@ -232,8 +232,14 @@ Tämä sivu näyttää yksittäisen tilan tiedot ja varauskalenterin.
         });
       } catch (er) {}
       pendingEvents = [];
+      // Clear booking message and form fields
       const messageEl = document.getElementById('booking-message');
       if (messageEl) messageEl.textContent = '';
+      try {
+        const fn = document.getElementById('first_name'); if (fn) fn.value = '';
+        const ln = document.getElementById('last_name'); if (ln) ln.value = '';
+        const em = document.getElementById('email'); if (em) em.value = '';
+      } catch (er) {}
       // Force a re-render to update day cell classes
       try { calendar.render(); } catch (e) {}
     }
@@ -271,6 +277,12 @@ Tämä sivu näyttää yksittäisen tilan tiedot ja varauskalenterin.
           } catch (e) { if (messageEl) { messageEl.style.color='crimson'; messageEl.textContent=`Verkkovirhe yritettäessä ${dayStr}`; } pendingEvents.forEach(e=>e.remove()); pendingEvents=[]; pendingDays=[]; calendar.refetchEvents(); return; }
         }
         if (messageEl) { messageEl.style.color='green'; messageEl.textContent=`Varaukset tallennettu: ${toSend.length} päivä(t).`; }
+        // Clear the booking form fields after successful booking
+        try {
+          if (firstNameEl) firstNameEl.value = '';
+          if (lastNameEl) lastNameEl.value = '';
+          if (emailEl) emailEl.value = '';
+        } catch (er) {}
         pendingEvents.forEach(e=>e.remove()); pendingEvents=[]; pendingDays=[]; calendar.refetchEvents();
       })();
     });
