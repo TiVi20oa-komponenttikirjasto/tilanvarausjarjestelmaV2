@@ -257,6 +257,12 @@ def add_event(request):
         last_name = data.get('last_name', '').strip()
         email = data.get('email', '').strip()
 
+        # If the request is from an authenticated Django user, prefer their account info
+        if hasattr(request, 'user') and request.user and request.user.is_authenticated:
+            first_name = first_name or getattr(request.user, 'first_name', '') or getattr(request.user, 'firstname', '')
+            last_name = last_name or getattr(request.user, 'last_name', '') or getattr(request.user, 'lastname', '')
+            email = email or getattr(request.user, 'email', '')
+
         # Basic server-side validation
         if not first_name:
             return JsonResponse({"status": "error", "message": "Etunimi vaaditaan."}, status=400)

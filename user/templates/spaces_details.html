@@ -85,7 +85,19 @@ Tämä sivu näyttää yksittäisen tilan tiedot ja varauskalenterin.
         <button id="btnConfirmBooking" style="background:#007bff;color:white;padding:6px 10px;border-radius:4px;">Vahvista varaus</button>
   <button id="btnClearSelection">Tyhjennä valinnat</button>
       </div>
-      <!-- Varaajan tiedot: etunimi, sukunimi, sähköposti (SIIRRETTY YLÖSPÄIN) -->
+      <!-- Varaajan tiedot: näytetään lomake vain jos käyttäjä ei ole kirjautunut -->
+      {% if user.is_authenticated %}
+      <div id="current-user-info" style="max-width:520px;margin:16px auto;">
+        <h3>Kirjautunut käyttäjä</h3>
+        <p id="current-user-display">
+          {% if user.first_name %}{{ user.first_name }}{% else %}{{ user.firstname }}{% endif %}
+          {% if user.last_name %}{{ user.last_name }}{% else %}{{ user.lastname }}{% endif %}
+          &lt;{{ user.email }}&gt;
+        </p>
+        <p style="font-size:0.9em;color:#666;margin-top:6px;">Varaukset liitetään automaattisesti kirjautuneeseen käyttäjään.</p>
+        <div id="booking-message" style="margin-top:8px;font-weight:600;"></div>
+      </div>
+      {% else %}
       <div id="booking-form" style="max-width:520px;margin:16px auto;">
         <h3>Varaajan tiedot</h3>
         <label for="first_name">Etunimi</label>
@@ -97,7 +109,9 @@ Tämä sivu näyttää yksittäisen tilan tiedot ja varauskalenterin.
         <p style="font-size:0.9em;color:#666;margin-top:6px;">Täytä tiedot ennen päiväaluetta valitessasi — tiedot liitetään varaukseen.</p>
         <div id="booking-message" style="margin-top:8px;font-weight:600;"></div>
       </div>
-      <div id="calendar"></div>
+      {% endif %}
+  <!-- Pass current user info safely via data-attributes on the calendar container -->
+  <div id="calendar" data-authenticated="{{ user.is_authenticated|yesno:'1,0' }}" data-first-name="{{ user.first_name|default:user.firstname|escape }}" data-last-name="{{ user.last_name|default:user.lastname|escape }}" data-email="{{ user.email|escape }}"></div>
       <!-- Toiminnot myös kalenterin alle (käyttäjä voi vahvistaa tai tyhjentää valinnan tästäkin) -->
   <div style="margin-top:12px;display:flex;justify-content:flex-end;gap:8px;align-self:flex-end;">
         <button id="btnConfirmBookingBottom" style="background:#007bff;color:white;padding:6px 10px;border-radius:4px;">Vahvista varaus</button>
@@ -114,7 +128,17 @@ Tämä sivu näyttää yksittäisen tilan tiedot ja varauskalenterin.
     let pendingEvents = [];
     const selectedType = 'varattu';
 
+    // Read current user info from data-attributes to avoid embedding template tags in JS
     const calendarEl = document.getElementById('calendar');
+    const dataset = calendarEl ? calendarEl.dataset : {};
+    const currentUser = {
+      authenticated: dataset.authenticated === '1',
+      firstName: dataset.firstName || '',
+      lastName: dataset.lastName || '',
+      email: dataset.email || ''
+    };
+
+  // calendarEl is defined above; reuse it
 
     function toYMD(d) {
       const y = d.getFullYear();
@@ -252,15 +276,16 @@ Tämä sivu näyttää yksittäisen tilan tiedot ja varauskalenterin.
     // Confirm booking button
     document.getElementById('btnConfirmBooking').addEventListener('click', function() {
       const messageEl = document.getElementById('booking-message');
-      const firstNameEl = document.getElementById('first_name');
-      const lastNameEl = document.getElementById('last_name');
-      const emailEl = document.getElementById('email');
-      const firstName = firstNameEl ? firstNameEl.value.trim() : '';
-      const lastName = lastNameEl ? lastNameEl.value.trim() : '';
-      const email = emailEl ? emailEl.value.trim() : '';
+  const firstNameEl = document.getElementById('first_name');
+  const lastNameEl = document.getElementById('last_name');
+  const emailEl = document.getElementById('email');
+  // Use currentUser when authenticated, otherwise read from form
+  const firstName = currentUser.authenticated ? currentUser.firstName : (firstNameEl ? firstNameEl.value.trim() : '');
+  const lastName = currentUser.authenticated ? currentUser.lastName : (lastNameEl ? lastNameEl.value.trim() : '');
+  const email = currentUser.authenticated ? currentUser.email : (emailEl ? emailEl.value.trim() : '');
       const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!firstName) { if (messageEl) { messageEl.style.color='crimson'; messageEl.textContent='Anna varauksen tekijän etunimi.';} return; }
-      if (!email || !emailPattern.test(email)) { if (messageEl) { messageEl.style.color='crimson'; messageEl.textContent='Anna kelvollinen sähköpostiosoite.';} return; }
+  if (!currentUser.authenticated && !firstName) { if (messageEl) { messageEl.style.color='crimson'; messageEl.textContent='Anna varauksen tekijän etunimi.';} return; }
+  if (!currentUser.authenticated && (!email || !emailPattern.test(email))) { if (messageEl) { messageEl.style.color='crimson'; messageEl.textContent='Anna kelvollinen sähköpostiosoite.';} return; }
       if (!pendingDays || pendingDays.length === 0) { if (messageEl) { messageEl.style.color='crimson'; messageEl.textContent='Ei valittuja päiviä.';} return; }
 
       // double-check pendingDays against varatut and today
