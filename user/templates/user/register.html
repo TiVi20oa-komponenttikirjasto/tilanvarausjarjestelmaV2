@@ -1,18 +1,27 @@
-<!DOCTYPE html>
-<html lang="fi">
-<head>
-  <meta charset="utf-8">
-  <title>Rekisteröinti</title>
-</head>
-<body>
-  <h1>Rekisteröidy</h1>
+{% extends "master.html" %}
 
-  <form method="post" action="{% url 'register' %}">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Luo tili</button>
-  </form>
+{% block title %}
+  Tilanvarausjarjestelma
+{% endblock %}
 
-  <p>Onko sinulla jo tili? <a href="{% url 'login' %}">Kirjaudu</a></p>
-</body>
-</html>
+{% block content %}
+  <head>
+    <title>Rekisteröinti</title>
+  </head>
+  <body>
+    <h1>Rekisteröidy</h1>
+
+    <form method="post" action="{% url 'register' %}">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit" class="btn btn-primary">Luo tili</button>
+    </form>
+    <br>
+    <p>
+      Onko sinulla jo tili? 
+      <a href="{% url 'login' %}">
+        <button class="btn btn-primary">Kirjaudu</button>
+      </a>
+    </p>
+  </body>
+{% endblock %}

@@ -1,6 +1,4 @@
-<!--
-Tämä on sovelluksen päätemplatetiedosto, johon muut sivut periytyvät.
--->
+<!-- Tämä on sovelluksen päätemplatetiedosto, johon muut sivut periytyvät. -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -24,11 +22,10 @@ Tämä on sovelluksen päätemplatetiedosto, johon muut sivut periytyvät.
 
     <div>
       {% if request.user.is_authenticated %}
-        <span class="me-2">Kirjautunut: 
-          <strong>{{ request.user.username }}</strong>
-          {% if request.user.email %}
-            ({{ request.user.email }})
-          {% endif %}
+        <span class="me-2">
+          Kirjautunut: <strong>{{ request.user.username }}</strong>
+          <!-- Jos haluat että sähköposti näkyy, ota alempi rivi pois kommenteista -->
+          <!-- {% if request.user.email %} ({{ request.user.email }}){% endif %} -->
         </span>
         <a href="{% url 'logout' %}" class="btn btn-primary">Kirjaudu ulos</a>
       {% else %}
