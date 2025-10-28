@@ -19,16 +19,12 @@
       <a href="{% url 'main' %}" class="btn btn-primary">Etusivu</a>
       <a href="{% url 'space' %}" class="btn btn-primary">Tilat</a>
     </div>
-
     <div>
       {% if request.user.is_authenticated %}
-        <span class="me-2">
+        <a href="{% url 'profile' %}" class="btn btn-outline-light me-2">
           Kirjautunut: <strong>{{ request.user.username }}</strong>
-          <!-- Jos haluat että sähköposti näkyy, ota alempi rivi pois kommenteista -->
-          <!-- {% if request.user.email %} ({{ request.user.email }}){% endif %} -->
-        </span>
-        <a href="{% url 'profile' %}" class="btn btn-primary">Profiili</a>
-        <a href="{% url 'logout' %}" class="btn btn-primary">Kirjaudu ulos</a>
+        </a>
+        <a href="{% url 'logout' %}" class="btn btn-secondary">Kirjaudu ulos</a>
       {% else %}
         <a href="{% url 'login' %}" class="btn btn-primary">Kirjaudu</a>
         <a href="{% url 'register' %}" class="btn btn-success ms-2">Rekisteröidy</a>

@@ -3,7 +3,6 @@
 {% block content %}
 <div>
     <h2>Oma profiili</h2>
-
     {% if message %}
     <div class="mt-2">
         {% for message in message %}
@@ -11,23 +10,36 @@
         {% endfor %}
     </div>
     {% endif %}
-
-    <div class="row">
+    <div class="row mt-4">
         <div class="col-md-6">
             <h4>Muokkaa tietojasi</h4>
             <form method="post">
                 {% csrf_token %}
                 {{ profile_form.as_p }}
-                <button type="submit" name="edit_profile" class="btn btn-primary mt-2">Tallenna muutokset</button>
+                <button type="submit" name="edit_profile" class="btn btn-primary">Tallenna muutokset</button>
+                <a href="{% url 'profile' %}">
+                    <button type="button" class="btn btn-secondary">Peruuta</button>
+                </a>
             </form>
         </div>
-
-        <div class="col-md-6">
+        <div class="row mt-4">
             <h4>Vaihda salasana</h4>
+            <!-- Salasanan vaihto (form) -->
             <form method="post">
+                <small class="text-muted">
+                    {{ password_form.new_password1.help_text|striptags }} <br>
+                </small>
+                <!-- Vanha salasana -->
                 {% csrf_token %}
-                {{ password_form.as_p }}
-                <button type="submit" name="change_password" class="btn btn-primary mt-2">Vaihda salasana</button>
+                {{ password_form.old_password.label_tag }} <br>
+                {{ password_form.old_password }} <br>
+                <!-- Uusi salasana -->
+                {{ password_form.new_password1.label_tag }} <br>
+                {{ password_form.new_password1 }} <br>
+                <!-- Uuden salasanan vahvistus -->
+                {{ password_form.new_password2.label_tag }} <br>
+                {{ password_form.new_password2 }} <br>
+                <button type="submit" name="change_password" class="btn btn-primary">Vaihda salasana</button>
             </form>
         </div>
     </div>
