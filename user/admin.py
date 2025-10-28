@@ -3,6 +3,8 @@
 
 from django.contrib import admin
 from .models import User, Space, Event
+from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
+from django.contrib.auth.models import User as AuthUser
 
 # LUOKAT JA RAKENTEET
 # ===================
@@ -92,3 +94,39 @@ class EventAdmin(admin.ModelAdmin):
 admin.site.register(User, MemberAdmin)
 admin.site.register(Space, SpaceAdmin)
 admin.site.register(Event, EventAdmin)
+
+# Show the app-specific idNumber on the Django auth.User change form (Personal info)
+try:
+  admin.site.unregister(AuthUser)
+except Exception:
+  pass
+
+
+class AuthUserAdmin(DjangoUserAdmin):
+  readonly_fields = DjangoUserAdmin.readonly_fields + ('app_id_number',)
+
+  fieldsets = (
+    (None, {'fields': ('username', 'password')}),
+    ('Personal info', {'fields': ('first_name', 'last_name', 'email', 'app_id_number')}),
+    ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
+    ('Important dates', {'fields': ('last_login', 'date_joined')}),
+  )
+
+  def app_id_number(self, obj):
+    try:
+      if obj.email:
+        app_user = User.objects.filter(email=obj.email).first()
+        if app_user:
+          return app_user.idNumber
+      # fallback: try matching by username/slug
+      app_user = User.objects.filter(slug=obj.username).first()
+      if app_user:
+        return app_user.idNumber
+    except Exception:
+      return None
+    return None
+
+  app_id_number.short_description = 'User-ID'
+
+
+admin.site.register(AuthUser, AuthUserAdmin)
