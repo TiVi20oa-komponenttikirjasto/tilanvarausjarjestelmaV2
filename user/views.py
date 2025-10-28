@@ -18,6 +18,8 @@ from django.contrib import messages
 from .forms import UserRegistrationForm
 import datetime
 from django.utils.text import slugify
+from django.db.models import IntegerField
+from django.db.models.functions import Cast
 
 # Käytetty esimerkissä
 # from django.db.models import Q
@@ -58,6 +60,34 @@ def register(request):
             user = form.save(commit=False)
             user.set_password(form.cleaned_data["password"])
             user.save()
+            # Ensure a corresponding app-level User exists for this auth user.
+            try:
+                from .models import User as AppUser
+            except Exception:
+                AppUser = None
+            if AppUser:
+                try:
+                    # If an AppUser with same email exists, don't duplicate.
+                    existing = None
+                    if user.email:
+                        existing = AppUser.objects.filter(email__iexact=user.email).first()
+                    if not existing:
+                        slug_candidate = slugify((user.first_name + ' ' + user.last_name)[:50]) or slugify(user.username)
+                        custom_user = AppUser.objects.create(
+                            firstname=user.first_name or user.username,
+                            lastname=user.last_name or '',
+                            email=user.email or None,
+                            joined_date=timezone.localdate(),
+                            slug=slug_candidate,
+                        )
+                        try:
+                            custom_user.external_id = str(custom_user.idNumber)
+                            custom_user.save(update_fields=['external_id'])
+                        except Exception:
+                            pass
+                except Exception:
+                    # best-effort: don't break registration flow on DB errors
+                    pass
             # Save phone to Profile if model exists
             phone = form.cleaned_data.get("phone")
             try:
@@ -191,10 +221,61 @@ def space(request):
     Returns:
         HttpResponse: Rendered page containing the spaces list.
     """
-    myspaces = Space.objects.all().values()
+    # Start with all spaces and annotate numeric fields for size/capacity to allow range filtering
+    qs = Space.objects.all().annotate(
+        size_int=Cast('size', IntegerField()),
+        capacity_int=Cast('capacity', IntegerField())
+    )
+
+    # Read filter parameters from GET
+    q_location = request.GET.get('location', '').strip()
+    q_type = request.GET.get('type', '').strip()
+    q_publicity = request.GET.get('publicity', '').strip()
+    q_service = request.GET.get('service_type', '').strip()
+    q_min_size = request.GET.get('min_size', '').strip()
+    q_max_size = request.GET.get('max_size', '').strip()
+    q_min_capacity = request.GET.get('min_capacity', '').strip()
+    q_max_capacity = request.GET.get('max_capacity', '').strip()
+
+    if q_location:
+        qs = qs.filter(location__icontains=q_location)
+    if q_type:
+        qs = qs.filter(type=q_type)
+    if q_publicity:
+        qs = qs.filter(publicity=q_publicity)
+    if q_service:
+        qs = qs.filter(service_type=q_service)
+
+    try:
+        if q_min_size:
+            qs = qs.filter(size_int__gte=int(q_min_size))
+        if q_max_size:
+            qs = qs.filter(size_int__lte=int(q_max_size))
+    except ValueError:
+        # ignore invalid numeric filters
+        pass
+
+    try:
+        if q_min_capacity:
+            qs = qs.filter(capacity_int__gte=int(q_min_capacity))
+        if q_max_capacity:
+            qs = qs.filter(capacity_int__lte=int(q_max_capacity))
+    except ValueError:
+        pass
+
     template = loader.get_template('all_spaces.html')
     context = {
-        'myspaces': myspaces,
+        'myspaces': qs,
+        'filters': {
+            'location': q_location,
+            'type': q_type,
+            'publicity': q_publicity,
+            'service_type': q_service,
+            'min_size': q_min_size,
+            'max_size': q_max_size,
+            'min_capacity': q_min_capacity,
+            'max_capacity': q_max_capacity,
+        }
     }
     return HttpResponse(template.render(context, request))
 
