@@ -54,6 +54,34 @@ def register(request):
             user = form.save(commit=False)
             user.set_password(form.cleaned_data["password"])
             user.save()
+            # Ensure a corresponding app-level User exists for this auth user.
+            try:
+                from .models import User as AppUser
+            except Exception:
+                AppUser = None
+            if AppUser:
+                try:
+                    # If an AppUser with same email exists, don't duplicate.
+                    existing = None
+                    if user.email:
+                        existing = AppUser.objects.filter(email__iexact=user.email).first()
+                    if not existing:
+                        slug_candidate = slugify((user.first_name + ' ' + user.last_name)[:50]) or slugify(user.username)
+                        custom_user = AppUser.objects.create(
+                            firstname=user.first_name or user.username,
+                            lastname=user.last_name or '',
+                            email=user.email or None,
+                            joined_date=timezone.localdate(),
+                            slug=slug_candidate,
+                        )
+                        try:
+                            custom_user.external_id = str(custom_user.idNumber)
+                            custom_user.save(update_fields=['external_id'])
+                        except Exception:
+                            pass
+                except Exception:
+                    # best-effort: don't break registration flow on DB errors
+                    pass
             # Save phone to Profile if model exists
             phone = form.cleaned_data.get("phone")
             try:
