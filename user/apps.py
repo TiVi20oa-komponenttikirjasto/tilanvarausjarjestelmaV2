@@ -15,6 +15,13 @@ class UserConfig(AppConfig):
     """
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'user'
+    def ready(self):
+        # Import signals so post_save handlers are registered when Django starts
+        try:
+            from . import signals  # noqa: F401
+        except Exception:
+            # Don't crash the app if signals fail to import during manage commands
+            pass
 
 # Tilat-sovelluksen konfiguraatio
 class SpaceConfig(AppConfig):
