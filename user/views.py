@@ -1,6 +1,10 @@
 # KIRJASTOJEN JA MODUULIEN LATAUKSET
 # ==================================
 
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib.auth import update_session_auth_hash
+from .forms import ProfileUpdateForm, UserRegistrationForm
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
@@ -73,6 +77,52 @@ def registration_success(request):
     Render a simple registration success page.
     """
     return render(request, "user/registration_success.html")
+
+# Profiili näkymä
+@login_required
+def profile(request):
+    # TODO: Lisää docstringit
+    """_summary_
+
+    Args:
+        request (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
+    user = request.user
+    return render(request, 'user/profile.html', {'user': user})
+
+# Profiilin muokkaus näkymä
+@login_required
+def edit_profile(request):
+    # TODO: Lisää docstringit
+    """_summary_
+
+    Args:
+        request (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
+    user = request.user
+
+    if request.method == 'POST':
+        profile_form = ProfileUpdateForm(request.POST, instance=user)
+        password_form = PasswordChangeForm(user, request.POST)
+        if 'edit_profile' in request.POST and profile_form.is_valid():
+            profile_form.save()
+            messages.success(request, 'Tiedot tallenettu onnistuneesti.')
+            return redirect('edit_profile')
+        elif 'change_password' in request.POST and password_form.is_valid():
+            user = password_form.save()
+            update_session_auth_hash(request, user)
+            messages.success(request, 'Salasana vaihdettu onnistuneesti.')
+            return redirect('edit_profile')
+    else:
+        profile_form = ProfileUpdateForm(instance=user)
+        password_form = PasswordChangeForm(user)
+    return render(request, 'user/edit_profile.html', {'profile_form': profile_form, 'password_form': password_form})
 
 # Käyttäjien listausnäkymä
 def user(request):
