@@ -1,0 +1,19 @@
+{% extends "master.html" %}
+{% block title %}Profiili{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Oma profiili</h2>
+
+<div class="card mt-3">
+    <div class="card-body">
+        <p><strong>Käyttäjänimi:</strong> {{ user.username }}</p>
+        <p><strong>Sähköposti:</strong> {{ user.email }}</p>
+        <p><strong>Etunimi:</strong> {{ user.first_name }}</p>
+        <p><strong>Sukunimi:</strong> {{ user.last_name }}</p>
+        <p><strong>Liittynyt:</strong> {{ user.date_joined|date:"d.m.Y H:i" }}</p>
+    </div>
+</div>
+    <a href="{% url 'edit_profile' %}"><button class="btn btn-primary">Muokkaa profiilia</button></a>
+</div>
+{% endblock %}
