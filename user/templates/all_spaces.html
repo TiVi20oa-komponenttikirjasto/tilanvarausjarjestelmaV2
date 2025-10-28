@@ -7,6 +7,34 @@
 
 {% block content %}
   <div>
+    <form method="get" class="mb-3">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+        <input type="text" name="location" placeholder="Sijainti" value="{{ filters.location|default:'' }}" class="form-control" style="width:180px;" />
+        <select name="type" class="form-select" style="width:160px;">
+          <option value="">Kaikki tyypit</option>
+          <option value="office" {% if filters.type == 'office' %}selected{% endif %}>Toimisto</option>
+          <option value="meeting_room" {% if filters.type == 'meeting_room' %}selected{% endif %}>Kokoushuone</option>
+          <option value="conference_room" {% if filters.type == 'conference_room' %}selected{% endif %}>Konferenssihuone</option>
+          <option value="event_space" {% if filters.type == 'event_space' %}selected{% endif %}>Tapahtumatila</option>
+        </select>
+        <select name="publicity" class="form-select" style="width:160px;">
+          <option value="">Kaikki julkisuudet</option>
+          <option value="public" {% if filters.publicity == 'public' %}selected{% endif %}>Julkinen</option>
+          <option value="private" {% if filters.publicity == 'private' %}selected{% endif %}>Yksityinen</option>
+        </select>
+        <select name="service_type" class="form-select" style="width:140px;">
+          <option value="">Kaikki palvelutyypit</option>
+          <option value="rental" {% if filters.service_type == 'rental' %}selected{% endif %}>Vuokra</option>
+          <option value="loan" {% if filters.service_type == 'loan' %}selected{% endif %}>Laina</option>
+        </select>
+        <input type="number" name="min_size" placeholder="Min koko m²" value="{{ filters.min_size|default:'' }}" class="form-control" style="width:120px;" />
+        <input type="number" name="max_size" placeholder="Max koko m²" value="{{ filters.max_size|default:'' }}" class="form-control" style="width:120px;" />
+        <input type="number" name="min_capacity" placeholder="Min kapasiteetti" value="{{ filters.min_capacity|default:'' }}" class="form-control" style="width:140px;" />
+        <input type="number" name="max_capacity" placeholder="Max kapasiteetti" value="{{ filters.max_capacity|default:'' }}" class="form-control" style="width:140px;" />
+        <button type="submit" class="btn btn-primary">Hae</button>
+        <a href="{% url 'space' %}" class="btn btn-secondary text-white">Tyhjennä</a>
+      </div>
+    </form>
     {% for tila in myspaces %}
 
     <!-- Kortti alkaa tästä  -->
