@@ -9,14 +9,7 @@ Tämä sivu näyttää yksittäisen tilan tiedot ja varauskalenterin.
 
 {% block content %}
 {% load static %}
-<!-- FullCalendar-paketin paikalliset komentosarjat (ladattu ladatusta paketista) -->
-<script src="{% static 'fullcalendar/fullcalendar-6.1.19/packages/core/index.global.min.js' %}"></script>
-<script src="{% static 'fullcalendar/fullcalendar-6.1.19/packages/interaction/index.global.min.js' %}"></script>
-<script src="{% static 'fullcalendar/fullcalendar-6.1.19/packages/daygrid/index.global.min.js' %}"></script>
-<script src="{% static 'fullcalendar/fullcalendar-6.1.19/packages/timegrid/index.global.min.js' %}"></script>
-<script src="{% static 'fullcalendar/fullcalendar-6.1.19/packages/list/index.global.min.js' %}"></script>
-<script src="{% static 'fullcalendar/fullcalendar-6.1.19/packages/rrule/index.global.min.js' %}"></script>
-<script src="{% static 'fullcalendar/fullcalendar-6.1.19/packages/core/locales-all.global.min.js' %}"></script>
+<!-- FullCalendar is loaded in the base template (master.html) via local static bundle -->
 <div class="layout">
   <aside class="sidebar-left">
     <!-- Vasen sivupalkin sisältö -->
@@ -111,7 +104,11 @@ Tämä sivu näyttää yksittäisen tilan tiedot ja varauskalenterin.
       </div>
       {% endif %}
   <!-- Pass current user info safely via data-attributes on the calendar container -->
-  <div id="calendar" data-authenticated="{{ user.is_authenticated|yesno:'1,0' }}" data-first-name="{{ user.first_name|default:user.firstname|escape }}" data-last-name="{{ user.last_name|default:user.lastname|escape }}" data-email="{{ user.email|escape }}"></div>
+  <div id="calendar"
+    data-authenticated="{{ user.is_authenticated|yesno:'1,0' }}"
+    data-first-name="{{ user.first_name|default:''|escape }}"
+    data-last-name="{{ user.last_name|default:''|escape }}"
+    data-email="{{ user.email|default:''|escape }}"></div>
       <!-- Toiminnot myös kalenterin alle (käyttäjä voi vahvistaa tai tyhjentää valinnan tästäkin) -->
   <div style="margin-top:12px;display:flex;justify-content:flex-end;gap:8px;align-self:flex-end;">
         <button id="btnConfirmBookingBottom" style="background:#007bff;color:white;padding:6px 10px;border-radius:4px;">Vahvista varaus</button>

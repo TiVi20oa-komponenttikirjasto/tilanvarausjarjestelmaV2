@@ -65,14 +65,17 @@ def register(request):
             return redirect("registration-success")
     else:
         form = UserRegistrationForm()
-    return render(request, "user/register.html", {"form": form})
+    template = loader.get_template('user/register.html')
+    context = {"form": form}
+    return HttpResponse(template.render(context, request))
 
 # Kun rekisteröinti onnistuu
 def registration_success(request):
     """
     Render a simple registration success page.
     """
-    return render(request, "user/registration_success.html")
+    template = loader.get_template('user/registration_success.html')
+    return HttpResponse(template.render({}, request))
 
 # Käyttäjien listausnäkymä
 def user(request):
@@ -147,7 +150,7 @@ def space(request):
 
 # Yksittäisen tilan tietojen näkymä
 def spaces_details(request, slug):
-  """Render a page showing details for a single space identified by slug.
+    """Render a page showing details for a single space identified by slug.
 
     Args:
         request (HttpRequest): Incoming HTTP request.
@@ -164,16 +167,16 @@ def spaces_details(request, slug):
     Raises:
         Http404: If no Space with the given slug exists (raised by get_object_or_404).
     """
-  myspaces = get_object_or_404(Space, slug=slug)
-  template = loader.get_template('spaces_details.html')
-  context = {
-    'myspaces': myspaces,
-  }
-  return HttpResponse(template.render(context, request))
+    myspaces = get_object_or_404(Space, slug=slug)
+    template = loader.get_template('spaces_details.html')
+    context = {
+        'myspaces': myspaces,
+    }
+    return HttpResponse(template.render(context, request))
 
 # Kalenterinäkymä
 def calendar_view(request):
-   """Render the calendar page.
+    """Render the calendar page.
 
     Args:
         request (HttpRequest): Incoming HTTP request.
@@ -181,7 +184,8 @@ def calendar_view(request):
     Returns:
         HttpResponse: Rendered calendar template via django.shortcuts.render.
     """
-   return render(request, "calendar.html")
+    template = loader.get_template('calendar.html')
+    return HttpResponse(template.render({}, request))
 
 # Palauttaa tilan tapahtumat JSON-muodossa kalenterille
 def events_json(request, space_id):
@@ -269,23 +273,56 @@ def add_event(request):
         if not email:
             return JsonResponse({"status": "error", "message": "Sähköposti vaaditaan."}, status=400)
 
-        # Find or create a user in the custom User model by email when provided,
-        # otherwise create a user entry using a slugified name.
+        # Determine the app-level User object to attach to the Event.
+        # If the request comes from an authenticated Django user, prefer that
+        # account and create/find the corresponding app User based on the
+        # auth user's email or username. Ignore client-supplied reserver info
+        # for authenticated users to avoid spoofing.
         user_obj = None
-        if email:
-            user_obj, created = User.objects.get_or_create(email=email, defaults={
-                'firstname': first_name or 'Tuntematon',
-                'lastname': last_name or '',
-                'slug': slugify((first_name + ' ' + last_name)[:50]) if (first_name or last_name) else slugify(email)
-            })
+        if hasattr(request, 'user') and request.user and request.user.is_authenticated:
+            # Try match by auth user's email first
+            auth_email = (getattr(request.user, 'email', '') or '').strip()
+            if auth_email:
+                user_obj = User.objects.filter(email__iexact=auth_email).first()
+            # Fallback: try matching by slugified username
+            if not user_obj:
+                slug_candidate = slugify(getattr(request.user, 'username', '') or '')
+                if slug_candidate:
+                    user_obj = User.objects.filter(slug=slug_candidate).first()
+            # If still not found, create a new app User from auth user info
+            if not user_obj:
+                slug_candidate = slugify(((getattr(request.user, 'first_name', '') or '') + ' ' + (getattr(request.user, 'last_name', '') or ''))[:50]) or slugify(getattr(request.user, 'username', '') or '')
+                try:
+                    user_obj = User.objects.create(
+                        firstname=(getattr(request.user, 'first_name', '') or request.user.username),
+                        lastname=(getattr(request.user, 'last_name', '') or ''),
+                        email=auth_email or None,
+                        joined_date=timezone.localdate(),
+                        slug=slug_candidate,
+                    )
+                    try:
+                        user_obj.external_id = str(user_obj.idNumber)
+                        user_obj.save(update_fields=['external_id'])
+                    except Exception:
+                        pass
+                except Exception:
+                    user_obj = None
         else:
-            # If no email, create by name (may duplicate)
-            slug_candidate = slugify((first_name + ' ' + last_name)[:50]) or f'user-{timezone.now().timestamp()}'
-            user_obj, created = User.objects.get_or_create(slug=slug_candidate, defaults={
-                'firstname': first_name or 'Tuntematon',
-                'lastname': last_name or '',
-                'email': email or None
-            })
+            # Not authenticated: fall back to client-provided reserver info
+            if email:
+                user_obj, created = User.objects.get_or_create(email=email, defaults={
+                    'firstname': first_name or 'Tuntematon',
+                    'lastname': last_name or '',
+                    'slug': slugify((first_name + ' ' + last_name)[:50]) if (first_name or last_name) else slugify(email)
+                })
+            else:
+                # If no email, create by name (may duplicate)
+                slug_candidate = slugify((first_name + ' ' + last_name)[:50]) or f'user-{timezone.now().timestamp()}'
+                user_obj, created = User.objects.get_or_create(slug=slug_candidate, defaults={
+                    'firstname': first_name or 'Tuntematon',
+                    'lastname': last_name or '',
+                    'email': email or None
+                })
 
         event = Event.objects.create(
             space=space,
