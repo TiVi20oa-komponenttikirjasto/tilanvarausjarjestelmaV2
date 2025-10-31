@@ -3,6 +3,7 @@
 
 from django.contrib import admin
 from .models import User, Space, Event
+from django.utils.text import slugify
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django.contrib.auth.models import User as AuthUser
 
@@ -47,10 +48,12 @@ class EventAdmin(admin.ModelAdmin):
     ordering (tuple): Default ordering for the admin list view.
   """
 
-  list_display = ('title', 'space', 'start_date', 'end_date', 'reserver_email')
+  list_display = ('title', 'space', 'start_date', 'end_date', 'reserver_email', 'user_id_number')
   list_filter = ('space', 'title')
-  search_fields = ('title','user__email')
+  search_fields = ('title','user__email','reserver_email','reserver_firstname','reserver_lastname','user__idNumber')
   ordering = ('start', 'id')
+
+  readonly_fields = ('user_id_number',)
 
   # Metodi joka palauttaa vain alkamis päivämäärän, jotta vältytään aikavyöhykkeisiin liittyviltä ongelmilta
   def start_date(self, obj):
@@ -84,14 +87,50 @@ class EventAdmin(admin.ModelAdmin):
 
   def reserver_email(self, obj):
     """Return the email address of the user who made the reservation."""
+    # Prefer the snapshot reserver_email on the event itself; fall back to linked app user
+    if getattr(obj, 'reserver_email', None):
+      return obj.reserver_email
     if obj.user:
       return obj.user.email
     return None
   reserver_email.admin_order_field = 'user__email'
   reserver_email.short_description = 'Sähköposti'
 
+  def user_id_number(self, obj):
+    """Return the app-level User idNumber for the event's linked app user or try to resolve
+    it from the reserver snapshot fields if the relation is not set.
+    """
+    try:
+      # Prefer the FK if present
+      if getattr(obj, 'user', None):
+        return obj.user.idNumber
+
+      # Fallback: try to resolve by event snapshot email
+      if getattr(obj, 'reserver_email', None):
+        au = User.objects.filter(email__iexact=obj.reserver_email).first()
+        if au:
+          return au.idNumber
+
+      # Last resort: try matching by slugified snapshot name
+      firstname = getattr(obj, 'reserver_firstname', '') or ''
+      lastname = getattr(obj, 'reserver_lastname', '') or ''
+      if firstname or lastname:
+        slug_val = slugify(f"{firstname} {lastname}")
+        au = User.objects.filter(slug=slug_val).first()
+        if au:
+          return au.idNumber
+    except Exception:
+      return None
+    return None
+  user_id_number.short_description = 'User-ID'
+  user_id_number.admin_order_field = 'user__idNumber'
+
 # Rekisteröidään mallit admin-käyttöliittymään
-admin.site.register(User, MemberAdmin)
+# NOTE: We intentionally do NOT register the app-specific `User` model here
+# to avoid showing the lower-level app user list in the Django admin.
+# If you want to manage app users through admin later, re-enable the
+# registration below.
+# admin.site.register(User, MemberAdmin)
 admin.site.register(Space, SpaceAdmin)
 admin.site.register(Event, EventAdmin)
 
@@ -103,6 +142,8 @@ except Exception:
 
 
 class AuthUserAdmin(DjangoUserAdmin):
+  # show the app-level id in the Django auth user list and change form
+  list_display = DjangoUserAdmin.list_display + ('app_id_number',)
   readonly_fields = DjangoUserAdmin.readonly_fields + ('app_id_number',)
 
   fieldsets = (

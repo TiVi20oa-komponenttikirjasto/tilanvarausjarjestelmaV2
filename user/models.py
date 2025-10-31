@@ -111,6 +111,10 @@ class Event(models.Model):
     """
     space = models.ForeignKey(Space, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    # Snapshot fields for the reserver so we don't need to create/update auth.User for every booking
+    reserver_firstname = models.CharField(max_length=255, null=True, blank=True)
+    reserver_lastname = models.CharField(max_length=255, null=True, blank=True)
+    reserver_email = models.EmailField(max_length=255, null=True, blank=True)
     title = models.CharField(max_length=200)  # "varattu" tai "vapaa"
     start = models.DateTimeField()
     end = models.DateTimeField(blank=True, null=True)

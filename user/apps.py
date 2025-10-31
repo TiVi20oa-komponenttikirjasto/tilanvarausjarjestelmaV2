@@ -16,12 +16,18 @@ class UserConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'user'
     def ready(self):
-        # Import signals so post_save handlers are registered when Django starts
-        try:
-            from . import signals  # noqa: F401
-        except Exception:
-            # Don't crash the app if signals fail to import during manage commands
-            pass
+        # NOTE: We intentionally do NOT auto-import signals here. The project
+        # prefers to create app-level User records only explicitly (for example
+        # during the registration flow). Avoid registering a global post_save
+        # handler that would create app Users for every auth.User (including
+        # admin-created users), because that populates the app `User` table
+        # when we don't want it.
+        # If you need the legacy behavior, re-enable the import below.
+        # try:
+        #     from . import signals  # noqa: F401
+        # except Exception:
+        #     pass
+        pass
 
 # Tilat-sovelluksen konfiguraatio
 class SpaceConfig(AppConfig):
