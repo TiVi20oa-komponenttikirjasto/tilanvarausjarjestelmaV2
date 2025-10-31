@@ -25,6 +25,9 @@ urlpatterns = [
     path('profile/', views.profile, name='profile'),
     path('editprofile/', views.edit_profile, name='edit_profile'),
 
+    # Tilan luonti
+    path('space/create/', views.create_space, name='create_space'),
+
     # Käyttäjien listaus ja yksityiskohdat
     path('user/', views.user, name='all_members'),
     path('users_details/<slug:slug>', views.users_details, name='users_details'),

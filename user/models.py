@@ -2,7 +2,7 @@
 # =========
 
 from django.db import models
-from django.contrib.auth.models import User
+#from django.contrib.auth.models import User
 from django.http import JsonResponse
 
 # # MALLIT JOTKA MÄÄRITTELEVÄT SOVELLUKSEN TIETOKANTARAKENTEEN
@@ -24,7 +24,6 @@ class User(models.Model):
   Returns:
       str: String representation of the user (first and last name).
   """
-
   idNumber = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
   firstname = models.CharField(max_length=255)
   lastname = models.CharField(max_length=255)
@@ -42,6 +41,7 @@ class Space(models.Model):
 
   Args:
       idNumber (BigAutoField): Unique identifier for the space
+      owner (ForeignKey) Owner of the space
       location (CharField): Location of the space
       publicity (CharField): Publicity status of the space (private or public)
       service_type (CharField): Service type of the space (rental or loan)
@@ -54,6 +54,14 @@ class Space(models.Model):
       str: String representation of the space
   """
   idNumber = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
+  owner = models.ForeignKey(
+    'User',
+    on_delete=models.CASCADE,
+    related_name='spaces',
+    null=True,
+    blank=True,
+    verbose_name='Owner'
+    )
   location = models.CharField(max_length=255, null=False)
   publicity = models.CharField(
       max_length=20,

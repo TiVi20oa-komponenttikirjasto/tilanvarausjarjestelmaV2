@@ -15,7 +15,7 @@ from django.utils import timezone
 from django.contrib.auth.models import User as AuthUser
 from django.contrib.auth.hashers import make_password
 from django.contrib import messages
-from .forms import UserRegistrationForm
+from .forms import UserRegistrationForm, SpaceForm
 import datetime
 from django.utils.text import slugify
 from django.db.models import IntegerField
@@ -156,6 +156,29 @@ def edit_profile(request):
         profile_form = ProfileUpdateForm(instance=user)
         password_form = PasswordChangeForm(user)
     return render(request, 'user/edit_profile.html', {'profile_form': profile_form, 'password_form': password_form})
+
+# Tilan luominen (Kirjautuminen vaadittu)
+@login_required
+def create_space(request):
+    # TODO: Lisää docstringit
+    """_summary_
+
+    Args:
+        request (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
+    if request.method == 'POST':
+        form = SpaceForm(request.POST)
+        if form.is_valid():
+            space = form.save(commit=False)
+            space.owner = request.user
+            space.save()
+            return redirect('profile', pk=space.pk)
+    else:
+        form = SpaceForm()
+    return render(request, 'user/create_space.html', {'form': form})
 
 # Käyttäjien listausnäkymä
 def user(request):

@@ -32,7 +32,7 @@ class SpaceAdmin(admin.ModelAdmin):
       prepopulated_fields (dict): Fields to auto-populate based on other fields.
   """
 
-  list_display = ("idNumber", "location", "publicity", "service_type", "type", "size", "capacity",)
+  list_display = ("idNumber", "owner", "location", "publicity", "service_type", "type", "size", "capacity",)
   prepopulated_fields = {"slug": ("type", "location")}
 
 # Varausten hallinta adminissa
