@@ -60,34 +60,31 @@ def register(request):
             user = form.save(commit=False)
             user.set_password(form.cleaned_data["password"])
             user.save()
-            # Ensure a corresponding app-level User exists for this auth user.
+            # Create a corresponding app-specific User record for self-registered users.
+            # We only create it here for users who register via this view (not for
+            # admin-created users). Do nothing if an app User with the same email
+            # already exists to keep this idempotent.
             try:
-                from .models import User as AppUser
+                phone = form.cleaned_data.get("phone")
             except Exception:
-                AppUser = None
-            if AppUser:
-                try:
-                    # If an AppUser with same email exists, don't duplicate.
-                    existing = None
-                    if user.email:
-                        existing = AppUser.objects.filter(email__iexact=user.email).first()
-                    if not existing:
-                        slug_candidate = slugify((user.first_name + ' ' + user.last_name)[:50]) or slugify(user.username)
-                        custom_user = AppUser.objects.create(
-                            firstname=user.first_name or user.username,
-                            lastname=user.last_name or '',
-                            email=user.email or None,
-                            joined_date=timezone.localdate(),
-                            slug=slug_candidate,
-                        )
-                        try:
-                            custom_user.external_id = str(custom_user.idNumber)
-                            custom_user.save(update_fields=['external_id'])
-                        except Exception:
-                            pass
-                except Exception:
-                    # best-effort: don't break registration flow on DB errors
-                    pass
+                phone = None
+
+            try:
+                # Prefer to match by email. If no app user exists, create one.
+                existing = User.objects.filter(email=user.email).first()
+                if not existing:
+                    slug_val = slugify(f"{user.first_name} {user.last_name}") or slugify(user.username)
+                    User.objects.create(
+                        firstname=user.first_name or "",
+                        lastname=user.last_name or "",
+                        email=user.email or None,
+                        phone=phone or None,
+                        joined_date=timezone.now().date(),
+                        slug=slug_val,
+                    )
+            except Exception:
+                # Don't let app user creation block the registration flow.
+                pass
             # Save phone to Profile if model exists
             phone = form.cleaned_data.get("phone")
             try:
@@ -404,64 +401,39 @@ def add_event(request):
         if not email:
             return JsonResponse({"status": "error", "message": "Sähköposti vaaditaan."}, status=400)
 
-        # Determine the app-level User object to attach to the Event.
-        # If the request comes from an authenticated Django user, prefer that
-        # account and create/find the corresponding app User based on the
-        # auth user's email or username. Ignore client-supplied reserver info
-        # for authenticated users to avoid spoofing.
-        user_obj = None
+        # Decide how to store reserver info.
+        # We prefer to store a snapshot on the Event so we don't create or modify
+        # the global Django auth.User list when an unauthenticated visitor makes a booking.
+        event_kwargs = {
+            'space': space,
+            'title': data["title"],
+            'start': start,
+            'end': end,
+            'reserver_firstname': first_name,
+            'reserver_lastname': last_name,
+            'reserver_email': email,
+        }
+
+        # If the request is authenticated, link to the app User if available.
+        # Do not create or update Django auth.User here.
         if hasattr(request, 'user') and request.user and request.user.is_authenticated:
-            # Try match by auth user's email first
             auth_email = (getattr(request.user, 'email', '') or '').strip()
+            app_user = None
             if auth_email:
-                user_obj = User.objects.filter(email__iexact=auth_email).first()
-            # Fallback: try matching by slugified username
-            if not user_obj:
+                app_user = User.objects.filter(email__iexact=auth_email).first()
+            if not app_user:
                 slug_candidate = slugify(getattr(request.user, 'username', '') or '')
                 if slug_candidate:
-                    user_obj = User.objects.filter(slug=slug_candidate).first()
-            # If still not found, create a new app User from auth user info
-            if not user_obj:
-                slug_candidate = slugify(((getattr(request.user, 'first_name', '') or '') + ' ' + (getattr(request.user, 'last_name', '') or ''))[:50]) or slugify(getattr(request.user, 'username', '') or '')
-                try:
-                    user_obj = User.objects.create(
-                        firstname=(getattr(request.user, 'first_name', '') or request.user.username),
-                        lastname=(getattr(request.user, 'last_name', '') or ''),
-                        email=auth_email or None,
-                        joined_date=timezone.localdate(),
-                        slug=slug_candidate,
-                    )
-                    try:
-                        user_obj.external_id = str(user_obj.idNumber)
-                        user_obj.save(update_fields=['external_id'])
-                    except Exception:
-                        pass
-                except Exception:
-                    user_obj = None
-        else:
-            # Not authenticated: fall back to client-provided reserver info
-            if email:
-                user_obj, created = User.objects.get_or_create(email=email, defaults={
-                    'firstname': first_name or 'Tuntematon',
-                    'lastname': last_name or '',
-                    'slug': slugify((first_name + ' ' + last_name)[:50]) if (first_name or last_name) else slugify(email)
-                })
-            else:
-                # If no email, create by name (may duplicate)
-                slug_candidate = slugify((first_name + ' ' + last_name)[:50]) or f'user-{timezone.now().timestamp()}'
-                user_obj, created = User.objects.get_or_create(slug=slug_candidate, defaults={
-                    'firstname': first_name or 'Tuntematon',
-                    'lastname': last_name or '',
-                    'email': email or None
-                })
+                    app_user = User.objects.filter(slug=slug_candidate).first()
+            if app_user:
+                event_kwargs['user'] = app_user
+                # also snapshot the reserver info from the auth user for clarity
+                event_kwargs['reserver_firstname'] = getattr(request.user, 'first_name', '') or ''
+                event_kwargs['reserver_lastname'] = getattr(request.user, 'last_name', '') or ''
+                event_kwargs['reserver_email'] = getattr(request.user, 'email', '') or ''
 
-        event = Event.objects.create(
-            space=space,
-            user=user_obj,
-            title=data["title"],
-            start=start,
-            end=end
-        )
+        # For unauthenticated requests we do NOT create an app.User or auth.User; event stores the details
+        event = Event.objects.create(**event_kwargs)
         return JsonResponse({"status": "ok", "event_id": event.id})
 
 # Poistaa tapahtuman kalenterista
