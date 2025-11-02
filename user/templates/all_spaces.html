@@ -32,7 +32,7 @@
         <input type="number" name="min_capacity" placeholder="Min kapasiteetti" value="{{ filters.min_capacity|default:'' }}" class="form-control" style="width:140px;" />
         <input type="number" name="max_capacity" placeholder="Max kapasiteetti" value="{{ filters.max_capacity|default:'' }}" class="form-control" style="width:140px;" />
         <button type="submit" class="btn btn-primary">Hae</button>
-        <a href="{% url 'space' %}" class="btn btn-secondary text-white">Tyhjennä</a>
+        <a href="{% url 'spaces' %}" class="btn btn-secondary text-white">Tyhjennä</a>
       </div>
     </form>
     {% for tila in myspaces %}

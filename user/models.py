@@ -28,7 +28,6 @@ class Space(models.Model):
       str: String representation of the space
   """
   idNumber = models.BigAutoField(auto_created=True, primary_key=True, serialize=True, verbose_name='ID')
-#   user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
   owner = models.ForeignKey(
     settings.AUTH_USER_MODEL,
     on_delete=models.CASCADE,
@@ -94,13 +93,14 @@ class Event(models.Model):
     """
     space = models.ForeignKey(Space, on_delete=models.CASCADE)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,null=True, blank=True)
+    reserver_email = models.EmailField('sähköposti', max_length=254, null=True, blank=True, help_text="Varaajan sähköpostiosoite (kirjautunut tai manuaalisesti annettu)")
     title = models.CharField(max_length=200)  # "varattu" tai "vapaa"
     start = models.DateTimeField()
     end = models.DateTimeField(blank=True, null=True)
 
-    def __str__(self):
-        return self.title
-    
     class Meta:
         # Mallitasolla oletusjärjestys: aikaisin aloitus ensin, sitten id
         ordering = ['start', 'id']
+
+    def __str__(self):
+        return f"{self.title} ({self.reserver_email or 'ei sähköpostia'})"

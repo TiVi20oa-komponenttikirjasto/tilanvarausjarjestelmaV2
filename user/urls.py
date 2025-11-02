@@ -33,7 +33,7 @@ urlpatterns = [
     path('users/<int:users_id>', views.user_details, name='user_details'),
 
     # Tilojen listaus ja yksityiskohdat
-    path('spaces/', views.spaces, name='space'),
+    path('spaces/', views.spaces, name='spaces'),
     path('spaces/<slug:slug>/', views.spaces_details, name='spaces_details'),
 
     # Kalenterin tapahtumien haku ja muokkaus

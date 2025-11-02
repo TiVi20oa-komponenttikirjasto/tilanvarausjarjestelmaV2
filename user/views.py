@@ -215,6 +215,7 @@ def events_json(request, space_id):
             "title": event.title,
             "start": event.start.isoformat(),
             "end": event.end.isoformat() if event.end else None,
+            "user_email": event.user.email if event.user else None,
             "color": "red" if event.title.lower() == "varattu" else "green"
         }
         for event in events

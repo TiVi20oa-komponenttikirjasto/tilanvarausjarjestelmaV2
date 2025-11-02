@@ -17,7 +17,7 @@
   <nav class="topnav d-flex align-items-center justify-content-between p-2">
     <div>
       <a href="{% url 'main' %}" class="btn btn-primary">Etusivu</a>
-      <a href="{% url 'space' %}" class="btn btn-primary">Tilat</a>
+      <a href="{% url 'spaces' %}" class="btn btn-primary">Tilat</a>
     </div>
     <div>
       {% if request.user.is_authenticated %}
