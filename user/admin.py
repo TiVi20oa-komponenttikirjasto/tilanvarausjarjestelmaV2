@@ -2,25 +2,12 @@
 # ==================================
 
 from django.contrib import admin
-from .models import User, Space, Event
+from django.contrib.auth.models import User
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
-from django.contrib.auth.models import User as AuthUser
+from .models import Space, Event
 
 # LUOKAT JA RAKENTEET
 # ===================
-
-# Järjestelmänvalvojan rakenne MemberAdmin luokalle, joka hyödyntää UusiKayttaja-mallia
-class MemberAdmin(admin.ModelAdmin):
-  """ Interface for managing user instances.
-
-  Args:
-      admin (ModelAdmin): The base admin class.
-      list_display (tuple): Fields to display in the admin list view.
-      prepopulated_fields (dict): Fields to auto-populate based on other fields.
-  """
-
-  list_display = ("idNumber", "firstname", "lastname", "email", "phone", "joined_date",)
-  prepopulated_fields = {"slug": ("firstname", "lastname")}
 
 # Järjestelmänvalvojan rakenne SpaceAdmin luokalle, joka hyödyntää Tilat-mallia
 class SpaceAdmin(admin.ModelAdmin):
@@ -32,7 +19,7 @@ class SpaceAdmin(admin.ModelAdmin):
       prepopulated_fields (dict): Fields to auto-populate based on other fields.
   """
 
-  list_display = ("idNumber", "location", "publicity", "service_type", "type", "size", "capacity",)
+  list_display = ("idNumber", "owner", "location", "publicity", "service_type", "type", "size", "capacity",)
   prepopulated_fields = {"slug": ("type", "location")}
 
 # Varausten hallinta adminissa
@@ -84,49 +71,29 @@ class EventAdmin(admin.ModelAdmin):
 
   def reserver_email(self, obj):
     """Return the email address of the user who made the reservation."""
-    if obj.user:
-      return obj.user.email
-    return None
+    return obj.user.email if obj.user else None
   reserver_email.admin_order_field = 'user__email'
   reserver_email.short_description = 'Sähköposti'
 
-# Rekisteröidään mallit admin-käyttöliittymään
-admin.site.register(User, MemberAdmin)
-admin.site.register(Space, SpaceAdmin)
-admin.site.register(Event, EventAdmin)
-
-# Show the app-specific idNumber on the Django auth.User change form (Personal info)
-try:
-  admin.site.unregister(AuthUser)
-except Exception:
-  pass
-
+if admin.site.is_registered(User):
+  admin.site.unregister(User)
 
 class AuthUserAdmin(DjangoUserAdmin):
-  readonly_fields = DjangoUserAdmin.readonly_fields + ('app_id_number',)
+    """Extend Django’s default User admin to show a placeholder app ID field."""
+    readonly_fields = DjangoUserAdmin.readonly_fields + ('app_id_number',)
 
-  fieldsets = (
-    (None, {'fields': ('username', 'password')}),
-    ('Personal info', {'fields': ('first_name', 'last_name', 'email', 'app_id_number')}),
-    ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
-    ('Important dates', {'fields': ('last_login', 'date_joined')}),
-  )
+    fieldsets = (
+        (None, {'fields': ('username', 'password')}),
+        ('Personal info', {'fields': ('first_name', 'last_name', 'email', 'app_id_number')}),
+        ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
+        ('Important dates', {'fields': ('last_login', 'date_joined')}),
+    )
 
-  def app_id_number(self, obj):
-    try:
-      if obj.email:
-        app_user = User.objects.filter(email=obj.email).first()
-        if app_user:
-          return app_user.idNumber
-      # fallback: try matching by username/slug
-      app_user = User.objects.filter(slug=obj.username).first()
-      if app_user:
-        return app_user.idNumber
-    except Exception:
-      return None
-    return None
+    def app_id_number(self, obj):
+        """Placeholder for potential external User ID."""
+        return None
+    app_id_number.short_description = 'User-ID'
 
-  app_id_number.short_description = 'User-ID'
-
-
-admin.site.register(AuthUser, AuthUserAdmin)
+admin.site.register(User, AuthUserAdmin)
+admin.site.register(Space, SpaceAdmin)
+admin.site.register(Event, EventAdmin)
