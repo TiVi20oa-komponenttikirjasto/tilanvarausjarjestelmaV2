@@ -1,91 +1,58 @@
 # KIRJASTOJEN JA MODUULIEN LATAUKSET
 # ==================================
 
+# Django
+# ------
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth import update_session_auth_hash
-from .forms import ProfileUpdateForm, UserRegistrationForm
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-import json
 from django.template import loader
-from .models import User,Space,Event
 from django.shortcuts import get_object_or_404, render, redirect
 from django.utils import timezone
-from django.contrib.auth.models import User as AuthUser
-from django.contrib.auth.hashers import make_password
+from django.contrib.auth.models import User
 from django.contrib import messages
-from .forms import UserRegistrationForm
-import datetime
 from django.utils.text import slugify
 from django.db.models import IntegerField
 from django.db.models.functions import Cast
 
+# Python
+# -----
+import datetime
+import json
+
+# Omat modulit
+# ------------
+from .forms import ProfileUpdateForm, UserRegistrationForm, SpaceForm
+from .models import Space, Event
+
 # Käytetty esimerkissä
 # from django.db.models import Q
 # https://www.w3schools.com/django/django_queryset_filter.php/ Filtterointi tapoja/suodatustapoja koodiin!
+
 
 # FUNKTIOT
 # ========
 
 # Pääsivun näkymä
 def main(request):
-    """Render the application's main page.
-
-    Args:
-        request (HttpRequest): The incoming HTTP request.
-
-    Variables:
-        template (django.template.Template): Template instance loaded with
-            'main.html' via django.template.loader.get_template.
-
-    Returns:
-        HttpResponse: Response containing the rendered template.
-    """
+    """Render the application's main page."""
     template = loader.get_template('main.html')
     return HttpResponse(template.render({}, request))
 
-def register(request):
-    """
-    Display and process the user registration form.
 
-    - Uses UserRegistrationForm to create a django.contrib.auth User.
-    - Sets the hashed password.
-    - If a Profile model exists in this app, saves the phone field there.
-    - Redirects to 'registration-success' on success.
-    """
+# Rekisteröityminen
+def register(request):
+    """Handle user registration using Django’s built-in User model."""
     if request.method == "POST":
         form = UserRegistrationForm(request.POST)
         if form.is_valid():
             user = form.save(commit=False)
             user.set_password(form.cleaned_data["password"])
             user.save()
-            # Create a corresponding app-specific User record for self-registered users.
-            # We only create it here for users who register via this view (not for
-            # admin-created users). Do nothing if an app User with the same email
-            # already exists to keep this idempotent.
-            try:
-                phone = form.cleaned_data.get("phone")
-            except Exception:
-                phone = None
 
-            try:
-                # Prefer to match by email. If no app user exists, create one.
-                existing = User.objects.filter(email=user.email).first()
-                if not existing:
-                    slug_val = slugify(f"{user.first_name} {user.last_name}") or slugify(user.username)
-                    User.objects.create(
-                        firstname=user.first_name or "",
-                        lastname=user.last_name or "",
-                        email=user.email or None,
-                        phone=phone or None,
-                        joined_date=timezone.now().date(),
-                        slug=slug_val,
-                    )
-            except Exception:
-                # Don't let app user creation block the registration flow.
-                pass
-            # Save phone to Profile if model exists
+            # Optionally save phone to a Profile model if it exists
             phone = form.cleaned_data.get("phone")
             try:
                 from .models import Profile
@@ -93,48 +60,33 @@ def register(request):
                 Profile = None
             if Profile and phone:
                 Profile.objects.create(user=user, phone=phone)
+
             return redirect("registration-success")
     else:
         form = UserRegistrationForm()
-    template = loader.get_template('user/register.html')
-    context = {"form": form}
-    return HttpResponse(template.render(context, request))
 
-# Kun rekisteröinti onnistuu
+    template = loader.get_template('user/register.html')
+    return HttpResponse(template.render({"form": form}, request))
+
+
+# Rekisteröinti onnistui
 def registration_success(request):
-    """
-    Render a simple registration success page.
-    """
+    """Render a simple registration success page."""
     template = loader.get_template('user/registration_success.html')
     return HttpResponse(template.render({}, request))
 
-# Profiili näkymä
+
+# Profiilinäkymä
 @login_required
 def profile(request):
-    # TODO: Lisää docstringit
-    """_summary_
+    """Display the currently logged-in user's profile."""
+    return render(request, 'user/profile.html', {'user': request.user})
 
-    Args:
-        request (_type_): _description_
 
-    Returns:
-        _type_: _description_
-    """
-    user = request.user
-    return render(request, 'user/profile.html', {'user': user})
-
-# Profiilin muokkaus näkymä
+# Profiilin muokkaus
 @login_required
 def edit_profile(request):
-    # TODO: Lisää docstringit
-    """_summary_
-
-    Args:
-        request (_type_): _description_
-
-    Returns:
-        _type_: _description_
-    """
+    """Allow a logged-in user to edit profile and password."""
     user = request.user
 
     if request.method == 'POST':
@@ -152,79 +104,54 @@ def edit_profile(request):
     else:
         profile_form = ProfileUpdateForm(instance=user)
         password_form = PasswordChangeForm(user)
-    return render(request, 'user/edit_profile.html', {'profile_form': profile_form, 'password_form': password_form})
+
+    return render(
+        request,
+        'user/edit_profile.html',
+        {'profile_form': profile_form, 'password_form': password_form},
+    )
+
+
+# Tilan luominen (Kirjautuminen vaadittu)
+@login_required
+def create_space(request):
+    """Allow logged-in users to create a Space they own."""
+    if request.method == 'POST':
+        form = SpaceForm(request.POST)
+        if form.is_valid():
+            space = form.save(commit=False)
+            space.owner = request.user
+            space.save()
+            return redirect('profile')
+    else:
+        form = SpaceForm()
+    return render(request, 'user/create_space.html', {'form': form})
+
 
 # Käyttäjien listausnäkymä
-def user(request):
-    """Render a page listing all custom User instances.
-
-    Args:
-        request (HttpRequest): Incoming HTTP request.
-
-    Variables:
-        mymembers (QuerySet of dict): All users returned as dictionaries via .values().
-        template (django.template.Template): Loaded 'all_members.html' template.
-        context (dict): Context passed to the template.
-
-    Returns:
-        HttpResponse: Rendered page containing the members list.
-    """
-    mymembers = AuthUser.objects.all().values('id','username','email','first_name','last_name')
+def users_list(request):
+    """List all Django auth users."""
+    mymembers = User.objects.all().values('id', 'username', 'email', 'first_name', 'last_name')
     template = loader.get_template('user/all_members.html')
-    context = {
-        'mymembers': mymembers,
-        #'current_user': request.user,
-    }
     return HttpResponse(template.render({'mymembers': mymembers}, request))
 
-# Yksittäisen käyttäjien tietojen näkymä
-def users_details(request, slug):
-    """Render a page showing details for a single user identified by slug.
 
-    Args:
-        request (HttpRequest): Incoming HTTP request.
-        slug (str): Slug identifying the user.
-
-    Variables:
-        mymember (User): The requested User instance.
-        template (django.template.Template): Loaded 'users_details.html' template.
-        context (dict): Context passed to the template.
-
-    Returns:
-        HttpResponse: Rendered user detail page.
-
-    Raises:
-        User.DoesNotExist: If no User with the given slug exists (propagates from .get()).
-    """
-    mymember = User.objects.get(slug=slug)
+# Yksittäisen käyttäjän tietojen näkymä
+def user_details(request, user_id):
+    """Display details for a single Django auth user."""
+    mymember = get_object_or_404(User, id=user_id)
     template = loader.get_template('users_details.html')
-    context = {
-        'mymember': mymember,
-    }
-    return HttpResponse(template.render(context, request))
+    return HttpResponse(template.render({'mymember': mymember}, request))
+
 
 # Tilojen listausnäkymä
-def space(request):
-    """Render a page listing all Space instances.
-
-    Args:
-        request (HttpRequest): Incoming HTTP request.
-
-    Variables:
-        myspaces (QuerySet of dict): All spaces returned as dictionaries via .values().
-        template (django.template.Template): Loaded 'all_spaces.html' template.
-        context (dict): Context passed to the template.
-
-    Returns:
-        HttpResponse: Rendered page containing the spaces list.
-    """
-    # Start with all spaces and annotate numeric fields for size/capacity to allow range filtering
+def spaces(request):
+    """Render a page listing all Space instances."""
     qs = Space.objects.all().annotate(
         size_int=Cast('size', IntegerField()),
         capacity_int=Cast('capacity', IntegerField())
     )
 
-    # Read filter parameters from GET
     q_location = request.GET.get('location', '').strip()
     q_type = request.GET.get('type', '').strip()
     q_publicity = request.GET.get('publicity', '').strip()
@@ -249,7 +176,6 @@ def space(request):
         if q_max_size:
             qs = qs.filter(size_int__lte=int(q_max_size))
     except ValueError:
-        # ignore invalid numeric filters
         pass
 
     try:
@@ -261,197 +187,70 @@ def space(request):
         pass
 
     template = loader.get_template('all_spaces.html')
-    context = {
-        'myspaces': qs,
-        'filters': {
-            'location': q_location,
-            'type': q_type,
-            'publicity': q_publicity,
-            'service_type': q_service,
-            'min_size': q_min_size,
-            'max_size': q_max_size,
-            'min_capacity': q_min_capacity,
-            'max_capacity': q_max_capacity,
-        }
-    }
-    return HttpResponse(template.render(context, request))
+    return HttpResponse(template.render({'myspaces': qs}, request))
+
 
 # Yksittäisen tilan tietojen näkymä
 def spaces_details(request, slug):
-    """Render a page showing details for a single space identified by slug.
-
-    Args:
-        request (HttpRequest): Incoming HTTP request.
-        slug (str): Slug identifying the space.
-
-    Variables:
-        myspaces (Space): The requested Space instance (object or 404 raised).
-        template (django.template.Template): Loaded 'spaces_details.html' template.
-        context (dict): Context passed to the template.
-
-    Returns:
-        HttpResponse: Rendered space detail page.
-
-    Raises:
-        Http404: If no Space with the given slug exists (raised by get_object_or_404).
-    """
+    """Render a page showing details for a single space identified by slug."""
     myspaces = get_object_or_404(Space, slug=slug)
     template = loader.get_template('spaces_details.html')
-    context = {
-        'myspaces': myspaces,
-    }
-    return HttpResponse(template.render(context, request))
+    return HttpResponse(template.render({'myspaces': myspaces}, request))
+
 
 # Kalenterinäkymä
 def calendar_view(request):
-    """Render the calendar page.
-
-    Args:
-        request (HttpRequest): Incoming HTTP request.
-
-    Returns:
-        HttpResponse: Rendered calendar template via django.shortcuts.render.
-    """
+    """Render the calendar page."""
     template = loader.get_template('calendar.html')
     return HttpResponse(template.render({}, request))
 
-# Palauttaa tilan tapahtumat JSON-muodossa kalenterille
+
+# Palauttaa tilan tapahtumat JSON-muodossa
 def events_json(request, space_id):
-    """Return all events for a given space as JSON suitable for FullCalendar.
-
-    Args:
-        request (HttpRequest): Incoming HTTP request.
-        space_id (int or str): Identifier of the Space to fetch events for.
-
-    Variables:
-        events (QuerySet): Events filtered by space_id and ordered by 'start'.
-        data (list): List of dicts prepared for JSON serialization.
-
-    Returns:
-        JsonResponse: JSON array of event objects. Each object contains 'id', 'title',
-                      'start' (ISO format), 'end' (ISO format or None), and 'color'.
-    """
+    """Return all events for a given space as JSON."""
     events = Event.objects.filter(space_id=space_id).order_by('start')
-    data = []
-    for event in events:
-        data.append({
+    data = [
+        {
             "id": event.id,
             "title": event.title,
             "start": event.start.isoformat(),
             "end": event.end.isoformat() if event.end else None,
+            "user_email": event.user.email if event.user else None,
             "color": "red" if event.title.lower() == "varattu" else "green"
-        })
+        }
+        for event in events
+    ]
     return JsonResponse(data, safe=False)
+
 
 # Lisää uusi tapahtuma kalenteriin
 @csrf_exempt
 def add_event(request):
-    """Add a new event to a space's calendar, checking for overlaps.
-
-    Args:
-        request (HttpRequest): Incoming HTTP POST request with JSON body containing:
-            - space_id: idNumber of the Space
-            - title: Event title
-            - start: ISO datetime string
-            - end: ISO datetime string
-
-    Variables:
-        data (dict): Parsed JSON payload.
-        space_id (int): Extracted space identifier.
-        start (datetime): Aware start datetime.
-        end (datetime): Aware end datetime.
-        overlap (bool): Whether a conflicting event exists.
-
-    Returns:
-        JsonResponse: {"status": "ok"} on success, or {"status": "error", "message": "..."} with
-                      appropriate HTTP status on failure (400 for overlap, 500 for parse errors).
-    """
+    """Add a new event to a space's calendar."""
     if request.method == "POST":
         data = json.loads(request.body)
         space_id = data.get("space_id")
-        space = Space.objects.get(idNumber=space_id)
+        space = get_object_or_404(Space, idNumber=space_id)
         start = timezone.make_aware(datetime.datetime.fromisoformat(data["start"]))
         end = timezone.make_aware(datetime.datetime.fromisoformat(data["end"]))
-        # Reject events that start in the past (compare dates in server timezone)
+
         today = timezone.localtime(timezone.now()).date()
         if start.date() < today:
             return JsonResponse({"status": "error", "message": "Et voi varata menneitä päiviä."}, status=400)
-        overlap = Event.objects.filter(
-            space_id=space_id,
-            start__lt=end,
-            end__gt=start
-        ).exists()
+
+        overlap = Event.objects.filter(space_id=space_id, start__lt=end, end__gt=start).exists()
         if overlap:
             return JsonResponse({"status": "error", "message": "Päällekkäinen varaus!"}, status=400)
 
-        # Collect reserver info (require first_name and email)
-        first_name = data.get('first_name', '').strip()
-        last_name = data.get('last_name', '').strip()
-        email = data.get('email', '').strip()
+        user_obj = request.user if request.user.is_authenticated else None
+        Event.objects.create(space=space, user=user_obj, title=data["title"], start=start, end=end)
+        return JsonResponse({"status": "ok"})
 
-        # If the request is from an authenticated Django user, prefer their account info
-        if hasattr(request, 'user') and request.user and request.user.is_authenticated:
-            first_name = first_name or getattr(request.user, 'first_name', '') or getattr(request.user, 'firstname', '')
-            last_name = last_name or getattr(request.user, 'last_name', '') or getattr(request.user, 'lastname', '')
-            email = email or getattr(request.user, 'email', '')
-
-        # Basic server-side validation
-        if not first_name:
-            return JsonResponse({"status": "error", "message": "Etunimi vaaditaan."}, status=400)
-        if not email:
-            return JsonResponse({"status": "error", "message": "Sähköposti vaaditaan."}, status=400)
-
-        # Decide how to store reserver info.
-        # We prefer to store a snapshot on the Event so we don't create or modify
-        # the global Django auth.User list when an unauthenticated visitor makes a booking.
-        event_kwargs = {
-            'space': space,
-            'title': data["title"],
-            'start': start,
-            'end': end,
-            'reserver_firstname': first_name,
-            'reserver_lastname': last_name,
-            'reserver_email': email,
-        }
-
-        # If the request is authenticated, link to the app User if available.
-        # Do not create or update Django auth.User here.
-        if hasattr(request, 'user') and request.user and request.user.is_authenticated:
-            auth_email = (getattr(request.user, 'email', '') or '').strip()
-            app_user = None
-            if auth_email:
-                app_user = User.objects.filter(email__iexact=auth_email).first()
-            if not app_user:
-                slug_candidate = slugify(getattr(request.user, 'username', '') or '')
-                if slug_candidate:
-                    app_user = User.objects.filter(slug=slug_candidate).first()
-            if app_user:
-                event_kwargs['user'] = app_user
-                # also snapshot the reserver info from the auth user for clarity
-                event_kwargs['reserver_firstname'] = getattr(request.user, 'first_name', '') or ''
-                event_kwargs['reserver_lastname'] = getattr(request.user, 'last_name', '') or ''
-                event_kwargs['reserver_email'] = getattr(request.user, 'email', '') or ''
-
-        # For unauthenticated requests we do NOT create an app.User or auth.User; event stores the details
-        event = Event.objects.create(**event_kwargs)
-        return JsonResponse({"status": "ok", "event_id": event.id})
 
 # Poistaa tapahtuman kalenterista
 @csrf_exempt
 def delete_event(request):
-    """Delete an event by its ID.
-
-    Args:
-        request (HttpRequest): Incoming HTTP POST request with JSON body containing 'id'.
-
-    Variables:
-        data (dict): Parsed JSON payload.
-        event_id (int): ID of the event to delete.
-
-    Returns:
-        JsonResponse: {"status": "ok"} on successful deletion, or
-                      {"status": "error", "message": "..."} with 404 if not found.
-    """
+    """Delete an event by its ID."""
     if request.method == "POST":
         data = json.loads(request.body)
         event_id = data.get("id")

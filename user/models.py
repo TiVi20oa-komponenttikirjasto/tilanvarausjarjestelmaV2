@@ -3,38 +3,11 @@
 
 from django.db import models
 from django.contrib.auth.models import User
+from django.conf import settings
 from django.http import JsonResponse
 
 # # MALLIT JOTKA MÄÄRITTELEVÄT SOVELLUKSEN TIETOKANTARAKENTEEN
 # ======================================================
-
-# Malli joka kuvaa Uutta käyttäjää sovelluksessa.
-class User(models.Model):
-  """Model representing a user in the application.
-
-  Args:
-      idNumber (BigAutoField): Unique identifier for the user
-      firstname (CharField): First name of the user
-      lastname (CharField): Last name of the user
-      phone (CharField): Phone number of the user (optional)
-      email (EmailField): Email address of the user (optional)
-      joined_date (DateField): Date when the user joined (optional)
-      slug (SlugField): Slug for URL identification
-
-  Returns:
-      str: String representation of the user (first and last name).
-  """
-
-  idNumber = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
-  firstname = models.CharField(max_length=255)
-  lastname = models.CharField(max_length=255)
-  phone = models.CharField(max_length=11, null=True)
-  email = models.EmailField(max_length=255, null=True)
-  joined_date = models.DateField(null=True)
-  slug = models.SlugField(default="", null=False)
-
-  def __str__(self):
-    return f"{self.firstname} {self.lastname}"
 
 # Malli joka kuvaa uutta tilaa sovelluksessa.
 class Space(models.Model):
@@ -42,6 +15,7 @@ class Space(models.Model):
 
   Args:
       idNumber (BigAutoField): Unique identifier for the space
+      owner (ForeignKey) Owner of the space
       location (CharField): Location of the space
       publicity (CharField): Publicity status of the space (private or public)
       service_type (CharField): Service type of the space (rental or loan)
@@ -53,7 +27,15 @@ class Space(models.Model):
   Returns:
       str: String representation of the space
   """
-  idNumber = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
+  idNumber = models.BigAutoField(auto_created=True, primary_key=True, serialize=True, verbose_name='ID')
+  owner = models.ForeignKey(
+    settings.AUTH_USER_MODEL,
+    on_delete=models.CASCADE,
+    related_name='space',
+    null=True,
+    blank=True,
+    verbose_name='Owner'
+    )
   location = models.CharField(max_length=255, null=False)
   publicity = models.CharField(
       max_length=20,
@@ -110,18 +92,15 @@ class Event(models.Model):
         str: String representation of the event
     """
     space = models.ForeignKey(Space, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
-    # Snapshot fields for the reserver so we don't need to create/update auth.User for every booking
-    reserver_firstname = models.CharField(max_length=255, null=True, blank=True)
-    reserver_lastname = models.CharField(max_length=255, null=True, blank=True)
-    reserver_email = models.EmailField(max_length=255, null=True, blank=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,null=True, blank=True)
+    reserver_email = models.EmailField('sähköposti', max_length=254, null=True, blank=True, help_text="Varaajan sähköpostiosoite (kirjautunut tai manuaalisesti annettu)")
     title = models.CharField(max_length=200)  # "varattu" tai "vapaa"
     start = models.DateTimeField()
     end = models.DateTimeField(blank=True, null=True)
 
-    def __str__(self):
-        return self.title
-    
     class Meta:
         # Mallitasolla oletusjärjestys: aikaisin aloitus ensin, sitten id
         ordering = ['start', 'id']
+
+    def __str__(self):
+        return f"{self.title} ({self.reserver_email or 'ei sähköpostia'})"

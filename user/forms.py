@@ -4,6 +4,10 @@
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django import forms
+from .models import Space
+
+# LUOKAT
+# ======
 
 class UserRegistrationForm(forms.ModelForm):
     password = forms.CharField(label='Salasana', widget=forms.PasswordInput)
@@ -30,3 +34,8 @@ class ProfileUpdateForm(forms.ModelForm):
             'first_name': forms.TextInput(attrs={'class': 'form-control'}),
             'last_name': forms.TextInput(attrs={'class': 'form-control'}),
         }
+
+class SpaceForm(forms.ModelForm):
+    class Meta:
+        model = Space
+        exclude = ['owner', 'slug']

@@ -25,15 +25,19 @@ urlpatterns = [
     path('profile/', views.profile, name='profile'),
     path('editprofile/', views.edit_profile, name='edit_profile'),
 
+    # Tilan luonti
+    path('space/create/', views.create_space, name='create_space'),
+
     # Käyttäjien listaus ja yksityiskohdat
-    path('user/', views.user, name='all_members'),
-    path('users_details/<slug:slug>', views.users_details, name='users_details'),
+    path('user/', views.users_list, name='user_list'),
+    path('users/<int:users_id>', views.user_details, name='user_details'),
 
     # Tilojen listaus ja yksityiskohdat
-    path('space/', views.space, name='space'),
-    path('space/spaces_details/<slug:slug>', views.spaces_details, name='spaces_details'),
+    path('spaces/', views.spaces, name='spaces'),
+    path('spaces/<slug:slug>/', views.spaces_details, name='spaces_details'),
 
     # Kalenterin tapahtumien haku ja muokkaus
+    path('calendar/', views.calendar_view, name='calendar_view'),
     path('events-json/<int:space_id>/', views.events_json, name='events_json'), # Tapahtumat JSON-muodossa
     path('add-event/', views.add_event, name='add_event'), # Lisää uusi tapahtuma
     path('delete-event/', views.delete_event, name='delete_event'), # Poista tapahtuma
