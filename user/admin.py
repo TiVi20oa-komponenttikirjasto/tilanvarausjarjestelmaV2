@@ -36,9 +36,8 @@ class EventAdmin(admin.ModelAdmin):
 
   list_display = ('title', 'space', 'start_date', 'end_date', 'reserver_email', 'user_id_number')
   list_filter = ('space', 'title')
-  search_fields = ('title','user__email','reserver_email','reserver_firstname','reserver_lastname','user__idNumber')
+  search_fields = ('title','user__email','reserver_email','user__id')
   ordering = ('start', 'id')
-
   readonly_fields = ('user_id_number',)
 
   # Metodi joka palauttaa vain alkamis päivämäärän, jotta vältytään aikavyöhykkeisiin liittyviltä ongelmilta
@@ -73,9 +72,14 @@ class EventAdmin(admin.ModelAdmin):
 
   def reserver_email(self, obj):
     """Return the email address of the user who made the reservation."""
-    return obj.user.email if obj.user else None
+    return obj.user.email if obj.user else obj.reserver_email
   reserver_email.admin_order_field = 'user__email'
   reserver_email.short_description = 'Sähköposti'
+
+  def user_id_number(self, obj):
+    """Show the user's numeric ID (default User model)."""
+    return obj.user.id if obj.user else None
+  user_id_number.short_description = "User ID"
 
 if admin.site.is_registered(User):
   admin.site.unregister(User)
