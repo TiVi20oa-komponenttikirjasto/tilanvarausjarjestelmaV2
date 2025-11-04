@@ -34,10 +34,12 @@ class EventAdmin(admin.ModelAdmin):
     ordering (tuple): Default ordering for the admin list view.
   """
 
-  list_display = ('title', 'space', 'start_date', 'end_date', 'reserver_email')
+  list_display = ('title', 'space', 'start_date', 'end_date', 'reserver_email', 'user_id_number')
   list_filter = ('space', 'title')
-  search_fields = ('title','user__email')
+  search_fields = ('title','user__email','reserver_email','reserver_firstname','reserver_lastname','user__idNumber')
   ordering = ('start', 'id')
+
+  readonly_fields = ('user_id_number',)
 
   # Metodi joka palauttaa vain alkamis päivämäärän, jotta vältytään aikavyöhykkeisiin liittyviltä ongelmilta
   def start_date(self, obj):
