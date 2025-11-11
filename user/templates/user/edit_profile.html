@@ -29,16 +29,16 @@
                 <small class="text-muted">
                     {{ password_form.new_password1.help_text|striptags }} <br>
                 </small>
-                <!-- Vanha salasana -->
+                <!-- Salasanan vaihto -->
                 {% csrf_token %}
-                {{ password_form.old_password.label_tag }} <br>
-                {{ password_form.old_password }} <br>
-                <!-- Uusi salasana -->
-                {{ password_form.new_password1.label_tag }} <br>
-                {{ password_form.new_password1 }} <br>
-                <!-- Uuden salasanan vahvistus -->
-                {{ password_form.new_password2.label_tag }} <br>
-                {{ password_form.new_password2 }} <br>
+                {{ password_form.non_field_errors }}
+                {% for field in password_form %}
+                    {{ field.label_tag }}<br>
+                    {{ field }}<br>
+                    {% for error in field.errors %}
+                        <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                {% endfor %}
                 <button type="submit" name="change_password" class="btn btn-primary">Vaihda salasana</button>
             </form>
         </div>

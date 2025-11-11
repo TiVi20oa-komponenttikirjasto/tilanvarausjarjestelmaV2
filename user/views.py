@@ -90,17 +90,30 @@ def edit_profile(request):
     user = request.user
 
     if request.method == 'POST':
-        profile_form = ProfileUpdateForm(request.POST, instance=user)
-        password_form = PasswordChangeForm(user, request.POST)
-        if 'edit_profile' in request.POST and profile_form.is_valid():
-            profile_form.save()
-            messages.success(request, 'Tiedot tallenettu onnistuneesti.')
-            return redirect('edit_profile')
-        elif 'change_password' in request.POST and password_form.is_valid():
-            user = password_form.save()
-            update_session_auth_hash(request, user)
-            messages.success(request, 'Salasana vaihdettu onnistuneesti.')
-            return redirect('edit_profile')
+        # Tietojen muokkaus metodi
+        if 'edit_profile' in request.POST:
+            profile_form = ProfileUpdateForm(request.POST, instance=user)
+            password_form = PasswordChangeForm(user)
+
+            # Onnistuneen tietojen muokkauksen kohdalla 
+            if profile_form.is_valid():
+                profile_form.save()
+                messages.success(request, 'Tiedot tallenettu onnistuneesti.')
+                return redirect('edit_profile')
+        
+        # Salasanan muokkaus metodi
+        elif 'change_password' in request.POST:
+            profile_form = ProfileUpdateForm(instance=user)
+            password_form = PasswordChangeForm(user, request.POST)
+
+            # Onnistuneen salasanan muokkauksen kohdalla
+            if password_form.is_valid():
+                user = password_form.save()
+                update_session_auth_hash(request, user)
+                messages.success(request, 'Salasana vaihdettu onnistuneesti.')
+                return redirect('edit_profile')
+            
+    # Epäonnistunut
     else:
         profile_form = ProfileUpdateForm(instance=user)
         password_form = PasswordChangeForm(user)
@@ -108,7 +121,10 @@ def edit_profile(request):
     return render(
         request,
         'user/edit_profile.html',
-        {'profile_form': profile_form, 'password_form': password_form},
+        {
+            'profile_form': profile_form,
+            'password_form': password_form
+        },
     )
 
 
