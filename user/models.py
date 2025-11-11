@@ -5,9 +5,10 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.conf import settings
 from django.http import JsonResponse
+from django.utils.text import slugify
 
 # # MALLIT JOTKA MÄÄRITTELEVÄT SOVELLUKSEN TIETOKANTARAKENTEEN
-# ======================================================
+# # ======================================================
 
 # Malli joka kuvaa uutta tilaa sovelluksessa.
 class Space(models.Model):
@@ -72,6 +73,14 @@ class Space(models.Model):
   size = models.CharField(max_length=10, verbose_name="Size m²", default="0", blank=True)
   capacity = models.CharField(max_length=10, verbose_name="Capacity", default="0", blank=True)
   slug = models.SlugField(default="", null=False)
+
+  def save(self, *args, **kwargs):
+    if not self.idNumber:
+        super().save(*args, **kwargs)
+    if not self.slug:
+        base_slug = slugify(f"{self.type}-{self.location}-{self.idNumber}")
+        self.slug = base_slug
+        super().save(update_fields=['slug'])
 
   def __str__(self):
       return f"ID: {self.idNumber}"
