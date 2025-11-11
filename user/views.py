@@ -61,6 +61,26 @@ def register(request):
             if Profile and phone:
                 Profile.objects.create(user=user, phone=phone)
 
+            # Ensure an AppUser profile exists for this auth.User so the
+            # app-specific User-ID is available immediately after
+            # registration. Use get_or_create to keep this idempotent.
+            try:
+                from .models import AppUser
+                slug_val = slugify(f"{user.first_name} {user.last_name}") or slugify(user.username)
+                AppUser.objects.get_or_create(
+                    user=user,
+                    defaults={
+                        'firstname': user.first_name or '',
+                        'lastname': user.last_name or '',
+                        'email': user.email or None,
+                        'joined_date': timezone.localdate(),
+                        'slug': slug_val,
+                    }
+                )
+            except Exception:
+                # Do not block registration on profile creation errors
+                pass
+
             return redirect("registration-success")
     else:
         form = UserRegistrationForm()
