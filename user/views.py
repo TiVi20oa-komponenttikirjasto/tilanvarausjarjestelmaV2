@@ -215,7 +215,10 @@ def events_json(request, space_id):
             "title": event.title,
             "start": event.start.isoformat(),
             "end": event.end.isoformat() if event.end else None,
-            "user_email": event.user.email if event.user else None,
+            # Prefer the snapshot reserver_email stored on the event (if the
+            # reserver filled the booking form). Fall back to the linked
+            # app/auth user email when available.
+            "user_email": (event.reserver_email or (event.user.email if event.user else None)),
             "color": "red" if event.title.lower() == "varattu" else "green"
         }
         for event in events
@@ -242,8 +245,19 @@ def add_event(request):
         if overlap:
             return JsonResponse({"status": "error", "message": "Päällekkäinen varaus!"}, status=400)
 
+        # Prefer explicit email provided in the booking payload. If none is
+        # provided and the request is authenticated, use the auth user's email.
+        reserver_email = data.get("email") or (request.user.email if getattr(request, 'user', None) and request.user.is_authenticated else None)
+
         user_obj = request.user if request.user.is_authenticated else None
-        Event.objects.create(space=space, user=user_obj, title=data["title"], start=start, end=end)
+        Event.objects.create(
+            space=space,
+            user=user_obj,
+            title=data["title"],
+            start=start,
+            end=end,
+            reserver_email=reserver_email,
+        )
         return JsonResponse({"status": "ok"})
 
 

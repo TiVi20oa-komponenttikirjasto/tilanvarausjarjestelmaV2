@@ -78,7 +78,13 @@ class EventAdmin(admin.ModelAdmin):
 
   def user_id_number(self, obj):
     """Show the user's numeric ID (default User model)."""
-    return obj.user.id if obj.user else None
+    # Prefer the app-level numeric id (AppUser.idNumber) if a profile exists
+    try:
+      if obj.user and hasattr(obj.user, 'app_profile') and obj.user.app_profile:
+        return obj.user.app_profile.idNumber
+      return obj.user.id if obj.user else None
+    except Exception:
+      return None
   user_id_number.short_description = "User ID"
 
 if admin.site.is_registered(User):
@@ -87,6 +93,14 @@ if admin.site.is_registered(User):
 class AuthUserAdmin(DjangoUserAdmin):
     """Extend Django’s default User admin to show a placeholder app ID field."""
     readonly_fields = DjangoUserAdmin.readonly_fields + ('app_id_number',)
+    # Insert the app_id_number column before the staff-status column for clarity
+    _base_list = list(DjangoUserAdmin.list_display)
+    try:
+        _insert_at = _base_list.index('is_staff')
+    except ValueError:
+        _insert_at = len(_base_list)
+    _base_list.insert(_insert_at, 'app_id_number')
+    list_display = tuple(_base_list)
 
     fieldsets = (
         (None, {'fields': ('username', 'password')}),
@@ -96,7 +110,12 @@ class AuthUserAdmin(DjangoUserAdmin):
     )
 
     def app_id_number(self, obj):
-        """Placeholder for potential external User ID."""
+        """Return the app-level User-ID if an AppUser profile exists for this auth.User."""
+        try:
+            if hasattr(obj, 'app_profile') and obj.app_profile:
+                return obj.app_profile.idNumber
+        except Exception:
+            return None
         return None
     app_id_number.short_description = 'User-ID'
 

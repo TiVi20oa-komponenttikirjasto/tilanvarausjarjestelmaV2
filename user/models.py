@@ -2,9 +2,32 @@
 # =========
 
 from django.db import models
-from django.contrib.auth.models import User
+# Avoid importing Django's auth User into the name `User` here; alias it
+# so this module can safely define its own app-level `User` model class later.
+from django.contrib.auth.models import User as AuthUser
 from django.conf import settings
 from django.http import JsonResponse
+
+
+# App-level user profile that provides an app-specific numeric id (User-ID)
+class AppUser(models.Model):
+    """One-to-one profile for Django auth.User that provides an app-level idNumber.
+
+    This keeps a small app-specific table while still using Django's auth.User
+    for authentication.
+    """
+    idNumber = models.BigAutoField(primary_key=True, auto_created=True, serialize=False, verbose_name='ID')
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='app_profile')
+    firstname = models.CharField(max_length=255, blank=True, default='')
+    lastname = models.CharField(max_length=255, blank=True, default='')
+    phone = models.CharField(max_length=20, null=True, blank=True)
+    email = models.EmailField(max_length=255, null=True, blank=True)
+    joined_date = models.DateField(null=True, blank=True)
+    slug = models.SlugField(default='', blank=True)
+
+    def __str__(self):
+        return f"{self.firstname} {self.lastname}" if (self.firstname or self.lastname) else f"app-user-{self.idNumber}"
+
 
 # # MALLIT JOTKA MÄÄRITTELEVÄT SOVELLUKSEN TIETOKANTARAKENTEEN
 # ======================================================
