@@ -1,0 +1,128 @@
+{% extends "master.html" %}
+
+{% block title %}
+    Omat varaukset
+{% endblock %}
+
+{% block content %}
+    <div class="container mt-4">
+        <h1>Omat varaukset</h1>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags}}{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- Nykyiset varaukset -->
+         <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">Nykyiset varaukset</h4>
+            </div>
+            <div class="card-body">
+                {% if current_reservations %}
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Tila</th>
+                                <th>Sijainti</th>
+                                <th>Alkaa</th>
+                                <th>Loppuu</th>
+                                <th>Tila</th>
+                                <th>Toiminnot</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for reservation in current_reservations %}
+                                <tr>
+                                    <td>
+                                        {% if reservation.space.type == "office" %}
+                                            Toimisto
+                                        {% elif reservation.space.type == "meeting_room" %}
+                                            Kokoushuone
+                                        {% elif reservation.space.type == "conference_room" %}
+                                            Konferenssihuone
+                                        {% elif reservation.space.type == "event_space" %}
+                                            Tapahtumatila
+                                        {% else %}
+                                            {{ reservation.space.type }}
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ reservation.space.location }}</td>
+                                    <td>{{ reservation.start|date:"d.m.Y H:i" }}</td>
+                                    <td>{{ reservation.end|date:"d.m.Y H:i" }}</td>
+                                    <td>
+                                        <span class="badge bg-success">{{ reservation.title }}</span>
+                                    </td>
+                                    <td>
+                                        <form method="post" action="{% url 'delete_reservation' reservation.id %}" style="display: inline;">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Haluatko varmasti peruuttaa varauksen')">Peruuta</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                    <p class="text-muted">Sinulla ei ole nykyisiä varauksia.</p>
+                {% endif %}
+            </div>
+         </div>
+
+         <!-- Menneet varaukset -->
+        <div class="card">
+            <div class="card-header bg-secondary text-white">
+                <h4 class="mb-0">Menneet varaukset</h4>
+            </div>
+            <div class="card-body">
+                {% if past_reservations %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Tila</th>
+                                    <th>Sijainti</th>
+                                    <th>Alkaa</th>
+                                    <th>Loppuu</th>
+                                    <th>Tila</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for reservation in past_reservations %}
+                                    <tr>
+                                        <td>
+                                            {% if reservation.space.type == "office" %}
+                                                Toimisto
+                                            {% elif reservation.space.type == "meeting_room" %}
+                                                Kokoushuone
+                                            {% elif reservation.space.type == "conference_room" %}
+                                                Konferenssihuone
+                                            {% elif reservation.space.type == "event_space" %}
+                                                Tapahtumatila
+                                            {% else %}
+                                                {{ reservation.space.type }}
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ reservation.space.location }}</td>
+                                        <td>{{ reservation.start|date:"d.n.Y H:i" }}</td>
+                                        <td>{{ reservation.end|date:"d.n.Y H:i" }}</td>
+                                        <td>
+                                            <span class="badge bg-secondary">{{ reservation.title }}</span>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted">Sinulla ei ole menneitä varauksia</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

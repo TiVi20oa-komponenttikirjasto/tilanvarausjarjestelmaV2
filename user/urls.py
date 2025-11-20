@@ -25,6 +25,10 @@ urlpatterns = [
     path('profile/', views.profile, name='profile'),
     path('editprofile/', views.edit_profile, name='edit_profile'),
 
+    # Omat varaukset
+    path('my_reservation/', views.my_reservations, name='my_reservations'),
+    path('delete-reservation/<int:reservation_id>', views.delete_reservation, name='delete_reservation'),
+
     # Tilan luonti
     path('space/create/', views.create_space, name='create_space'),
 
