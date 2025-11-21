@@ -172,6 +172,11 @@ a:link, a:visited {
   background-color: #e05b5b !important;
 }
 
+.varattu-oma-paiva { 
+  background-color: #00ff40 !important;
+}
+
+
 .fc-daygrid-event {
   display: none !important;
 }

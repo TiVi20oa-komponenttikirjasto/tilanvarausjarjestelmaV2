@@ -32,7 +32,6 @@ from .models import Space, Event
 # from django.db.models import Q
 # https://www.w3schools.com/django/django_queryset_filter.php/ Filtterointi tapoja/suodatustapoja koodiin!
 
-
 # FUNKTIOT
 # ========
 
@@ -41,7 +40,6 @@ def main(request):
     """Render the application's main page."""
     template = loader.get_template('main.html')
     return HttpResponse(template.render({}, request))
-
 
 # Rekisteröityminen
 def register(request):
@@ -288,6 +286,7 @@ def spaces(request):
 def spaces_details(request, slug):
     """Render a page showing details for a single space identified by slug."""
     myspaces = get_object_or_404(Space, slug=slug)
+    print(myspaces)
     template = loader.get_template('spaces_details.html')
     return HttpResponse(template.render({'myspaces': myspaces}, request))
 
@@ -313,6 +312,7 @@ def events_json(request, space_id):
             # reserver filled the booking form). Fall back to the linked
             # app/auth user email when available.
             "user_email": (event.reserver_email or (event.user.email if event.user else None)),
+            "user_id": event.user.id,
             "color": "red" if event.title.lower() == "varattu" else "green"
         }
         for event in events

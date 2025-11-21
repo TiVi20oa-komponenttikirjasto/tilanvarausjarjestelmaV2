@@ -11,11 +11,21 @@
             <p><strong>Etunimi:</strong> {{ user.first_name }}</p>
             <p><strong>Sukunimi:</strong> {{ user.last_name }}</p>
             <p><strong>Liittynyt:</strong> {{ user.date_joined|date:"d.m.Y H:i" }}</p>
-            <a href="{% url 'edit_profile' %}"><button class="btn btn-primary">Muokkaa profiilia</button></a>
+            <a href="{% url 'edit_profile' %}">
+                <button class="btn btn-primary">Muokkaa profiilia</button>
+            </a>
+        </div>
+        <div class="card-body">
+            <p>Omat varaukset</p>
+            <a href="{% url 'my_reservations' %}">
+                <button class="btn btn-primary">Omat varaukset</button>
+            </a>
         </div>
         <div class="card-body">
             <p>Lisää tila jota haluat vuokrata/lainata</p>
-            <a href="{% url 'create_space' %}"><button class="btn btn-primary">Luo tila</button></a>
+            <a href="{% url 'create_space' %}">
+                <button class="btn btn-primary">Luo tila</button>
+            </a>
         </div>
     </div>
 </div>
