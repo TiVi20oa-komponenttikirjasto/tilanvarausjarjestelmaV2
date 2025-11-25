@@ -74,6 +74,20 @@ Tämä sivu näyttää yksittäisen tilan tiedot ja varauskalenterin.
       </div>
     </div>
     <div class="calendar-section">
+        <style>
+          /* Other users' booked days: light red by default */
+          .varattu-paiva { background-color: rgba(220,60,60,0.25) !important; }
+          /* For authenticated viewers, show other users' bookings as dark red */
+          #calendar[data-authenticated="1"] .varattu-paiva { background-color: rgba(139,0,0,0.9) !important; }
+          /* Logged-in user's booked days: orange */
+          .own-varattu-paiva { background-color: rgba(255,140,60,0.28) !important; }
+          /* Background-event class for owner's bookings (stronger) */
+          .own-varattu-bg { background-color: rgba(255,140,60,0.45) !important; }
+          /* Pending selection (free days being selected): light green */
+          .pending-varaus { background-color: rgba(144,238,144,0.45) !important; }
+          /* Ensure day cell text remains readable */
+          .varattu-paiva, .own-varattu-paiva, .pending-varaus { color: inherit !important; }
+        </style>
   <div style="display:flex;justify-content:flex-end;gap:8px;align-self:flex-end;">
         <button id="btnConfirmBooking" style="background:#007bff;color:white;padding:6px 10px;border-radius:4px;">Vahvista varaus</button>
   <button id="btnClearSelection">Tyhjennä valinnat</button>
@@ -108,7 +122,8 @@ Tämä sivu näyttää yksittäisen tilan tiedot ja varauskalenterin.
     data-authenticated="{{ user.is_authenticated|yesno:'1,0' }}"
     data-first-name="{{ user.first_name|default:''|escape }}"
     data-last-name="{{ user.last_name|default:''|escape }}"
-    data-email="{{ user.email|default:''|escape }}"></div>
+    data-email="{{ user.email|default:''|escape }}"
+    data-app-id="{% if user.is_authenticated and user|default_if_none:'' and user.app_profile %}{{ user.app_profile.idNumber }}{% else %}{% endif %}"></div>
       <!-- Toiminnot myös kalenterin alle (käyttäjä voi vahvistaa tai tyhjentää valinnan tästäkin) -->
   <div style="margin-top:12px;display:flex;justify-content:flex-end;gap:8px;align-self:flex-end;">
         <button id="btnConfirmBookingBottom" style="background:#007bff;color:white;padding:6px 10px;border-radius:4px;">Vahvista varaus</button>
@@ -121,8 +136,11 @@ Tämä sivu näyttää yksittäisen tilan tiedot ja varauskalenterin.
   document.addEventListener("DOMContentLoaded", function () {
     // State
     const varatutPaivat = new Set();
+    const ownVaratutPaivat = new Set();
     let pendingDays = [];
     let pendingEvents = [];
+    // background markers we add for owner's bookings (so we can remove them on refetch)
+    let ownBgEvents = [];
     const selectedType = 'varattu';
 
     // Read current user info from data-attributes to avoid embedding template tags in JS
@@ -132,7 +150,9 @@ Tämä sivu näyttää yksittäisen tilan tiedot ja varauskalenterin.
       authenticated: dataset.authenticated === '1',
       firstName: dataset.firstName || '',
       lastName: dataset.lastName || '',
-      email: dataset.email || ''
+      email: dataset.email || '',
+      // app-level idNumber (string or empty)
+      appId: dataset.appId || ''
     };
 
   // calendarEl is defined above; reuse it
@@ -171,15 +191,43 @@ Tämä sivu näyttää yksittäisen tilan tiedot ja varauskalenterin.
               const tb = db ? db.getTime() : 0;
               return ta - tb;
             });
-            // fill varatutPaivat set
+            // fill varatutPaivat and ownVaratutPaivat sets
             varatutPaivat.clear();
+            ownVaratutPaivat.clear();
+            // remove any previously added owner background markers
+            try { ownBgEvents.forEach(e=>e.remove()); } catch(err) {}
+            ownBgEvents = [];
             events.forEach(ev => {
               if (ev.title && ev.title.toLowerCase() === 'varattu') {
                 const key = ev.start && ev.start.split ? ev.start.split('T')[0] : ev.start;
-                if (key) varatutPaivat.add(key);
+                if (key) {
+                  varatutPaivat.add(key);
+                  // try to detect reserver email in common places
+                  // Prefer numeric app-level match when provided by backend
+                  const reserverAppId = (ev.reserver_app_id || (ev.extendedProps && ev.extendedProps.reserver_app_id) || null);
+                  const reserverEmail = (ev.reserver_email || ev.email || (ev.extendedProps && (ev.extendedProps.reserver_email || ev.extendedProps.email)) || (ev.user && ev.user.email) || '').toString().toLowerCase();
+                  if (currentUser.authenticated) {
+                    if (reserverAppId && String(reserverAppId) === String(currentUser.appId)) {
+                      ownVaratutPaivat.add(key);
+                    } else if (reserverEmail && reserverEmail === (currentUser.email || '').toLowerCase()) {
+                      ownVaratutPaivat.add(key);
+                    }
+                  }
+                }
               }
             });
             successCallback(events);
+            // add background markers for owner's bookings (orange-red)
+            try {
+              if (currentUser.authenticated) {
+                ownVaratutPaivat.forEach(d => {
+                  try {
+                    const ev = calendar.addEvent({ start: d, allDay: true, display: 'background', classNames: ['own-varattu-bg'] });
+                    ownBgEvents.push(ev);
+                  } catch (e) {}
+                });
+              }
+            } catch (e) {}
           })
           .catch(failureCallback);
       },
@@ -232,7 +280,12 @@ Tämä sivu näyttää yksittäisen tilan tiedot ja varauskalenterin.
       },
       dayCellClassNames: function(arg) {
         const isoDate = toYMD(arg.date);
-         // TODO: tarkistellaan user_id onko sama kuin käyttäjä niin saaadaan eri väriset päivät 
+        // Prioritize marking the current user's own bookings first
+        try {
+          if (ownVaratutPaivat && ownVaratutPaivat.has && ownVaratutPaivat.has(isoDate)) {
+            return ['own-varattu-paiva'];
+          }
+        } catch (e) {}
         if (varatutPaivat.has(isoDate)) return ['varattu-paiva'];
         if (pendingDays && pendingDays.indexOf(isoDate) !== -1) return ['pending-varaus'];
         return [];
