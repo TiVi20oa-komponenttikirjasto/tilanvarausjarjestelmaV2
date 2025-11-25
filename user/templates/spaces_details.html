@@ -232,6 +232,7 @@ Tämä sivu näyttää yksittäisen tilan tiedot ja varauskalenterin.
       },
       dayCellClassNames: function(arg) {
         const isoDate = toYMD(arg.date);
+         // TODO: tarkistellaan user_id onko sama kuin käyttäjä niin saaadaan eri väriset päivät 
         if (varatutPaivat.has(isoDate)) return ['varattu-paiva'];
         if (pendingDays && pendingDays.indexOf(isoDate) !== -1) return ['pending-varaus'];
         return [];
