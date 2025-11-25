@@ -28,7 +28,7 @@ body {
   width: 350px;
   border-radius: 5px;
   box-shadow: 0 5px 7px -1px rgba(51, 51, 51, 0.23); 
-  padding: 0px;
+  padding: 20px;
   overflow: hidden;
 }
 
@@ -40,16 +40,19 @@ body {
 }
 
 .mycard-header h1 {
-  color: #fff;
+  color: #333;
   font-size: 32px;
   margin: 0;
+  margin-bottom: 20px;
   line-height: 1.2;
 }
 
 .mycard-header h2 {
-  color: #fff;
+  color: #555;
   font-size: 32px;
   margin: 0;
+  margin-top: 25px;
+  margin-bottom: 15px;
   line-height: 1.2;
 }
 
@@ -157,15 +160,88 @@ a:link, a:visited {
   min-height: 100vh;
 }
 
+.layout-container {
+  display: flex;
+  min-height: calc(100vh - 80px); /* Adjust based on your nav height */
+}
+
 .sidebar-left, .sidebar-right {
-  width: 220px;
-  background: #bbbbbb;
+  width: 350px;
+  background: #f8f9fa;
+  border-right: 1px solid #dee2e6;
   padding: 20px;
+  overflow-y: auto;
 }
 
 .main-content {
   flex: 1;
-  padding: 30px;
+  padding: 20px;
+}
+
+.main-content.with-sidebar {
+  margin-left: 0;
+}
+
+.reservations-sidebar h3 {
+  color: #495057;
+  border-bottom: 2px solid #007bff;
+  padding-bottom: 10px;
+  margin-bottom: 20pz;
+}
+
+.reservation-section {
+  margin-bottom: 20px;
+}
+
+.reservation-section h5 {
+  color: #6c757d;
+  font-size: 1rem;
+  margin-bottom: 10px;
+}
+
+.reservation-list {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.reservation-item {
+  background: white;
+  border: 1px solid #e9ecef;
+  border-radius: 5px;
+  padding: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.reservation-space {
+  font-size: o.9rem;
+  margin-bottom: 5px;
+}
+
+.reservation-time {
+  font-size: 0.8rem;
+  color: #6c757d;
+  margin-bottom: 8px;
+}
+
+.reservation-action {
+  text-align: right;
+}
+
+/* Responsiivinen tyyli */
+@media (max-width: 768px) {
+  .layout-container {
+    flex-direction: column;
+  }
+
+  .sidebar-left {
+    width: 100%;
+    border-radius: none;
+    border-bottom: 1px solid #dee2e6;
+  }
+
+  .main-content.with-sidebar {
+    margin-left: 0;
+  }
 }
 
 .varattu-paiva {

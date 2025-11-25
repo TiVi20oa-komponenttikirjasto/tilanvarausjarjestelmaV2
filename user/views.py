@@ -38,8 +38,19 @@ from .models import Space, Event
 # Pääsivun näkymä
 def main(request):
     """Render the application's main page."""
+    context = {}
+
+    # ???
+    if request.user.is_authenticated:
+        # ???
+        user_events = Event.objects.filter(
+            models.Q(user=request.user) | 
+            models.Q(reserver_email=request.user.email)
+        ).filter(end__gte=timezone.now()).order_by('start')[:5]
+
+        context['current_reservations'] = user_events
     template = loader.get_template('main.html')
-    return HttpResponse(template.render({}, request))
+    return HttpResponse(template.render(context, request))
 
 # Rekisteröityminen
 def register(request):
