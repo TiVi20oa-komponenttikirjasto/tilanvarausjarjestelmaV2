@@ -1,0 +1,25 @@
+{% if current_reservations %}
+    <h4 class="mb-3">Omat varaukset</h4>
+    <ul class="list-group mb-4">
+        {% for reservation in current_reservations %}
+            <li class="list-group-item">
+                <strong>
+                    {% if reservation.space.type == "office" %}
+                        Toimisto
+                    {% elif reservation.space.type == "meeting_room" %}
+                        Kokoushuone
+                    {% elif reservation.space.type == "conference_room" %}
+                        Konferenssihuone
+                    {% elif reservation.space.type == "event_space" %}
+                        Tapahtumatila
+                    {% else %}
+                        {{ reservation.space.type }}
+                    {% endif %}
+                </strong>
+                <br>{{ reservation.start|date:"d.m.Y H:i" }} – {{ reservation.end|date:"d.m.Y H:i" }}
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p class="text-muted">Ei varauksia.</p>
+{% endif %}
