@@ -6,22 +6,75 @@
 {% endblock %}
 
 {% block content %}
-  <div class="d-flex">
-    <!-- {% if user.is_authenticated %}
-      <aside class="p-3" style="width: 300px; background: #f8f9fa; border-right: 1px solid #ddd;">
-        {% if request.user.is_authenticated %}
-          <a href="{% url 'my_reservations' %}">
-            <button class="btn btn-primary">Omat varaukset</button>
-          </a>
+<div class="layout-container">
+  {% if user.is_authenticated %}
+  <!-- Vasen sivupalkki: Omat varaukset -->
+  <aside class="sidebar-left">
+    <div class="reservations-sidebar">
+      <h3>Omat varaukset</h3>
+      
+      <!-- Nykyiset varaukset -->
+      <div class="reservation-section">
+        <h5>Nykyiset varaukset</h5>
+        {% if current_reservations %}
+          <div class="reservation-list">
+            {% for reservation in current_reservations %}
+            <div class="reservation-item">
+              <div class="reservation-space">
+                <strong>
+                  {% if reservation.space.type == "office" %}
+                    Toimisto
+                  {% elif reservation.space.type == "meeting_room" %}
+                    Kokoushuone
+                  {% elif reservation.space.type == "conference_room" %}
+                    Konferenssihuone
+                  {% elif reservation.space.type == "event_space" %}
+                    Tapahtumatila
+                  {% else %}
+                    {{ reservation.space.type }}
+                  {% endif %}
+                </strong>
+                - {{ reservation.space.location }}
+              </div>
+              <div class="reservation-time">
+                {{ reservation.start|date:"d.m.Y H:i" }} - {{ reservation.end|date:"d.m.Y H:i" }}
+              </div>
+              <div class="reservation-actions">
+                <a href="{% url 'delete_reservation' reservation.id %}" 
+                   class="btn btn-sm btn-danger"
+                   onclick="return confirm('Haluatko varmasti peruuttaa varauksen?')">
+                  Peruuta
+                </a>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="text-muted">Ei nykyisiä varauksia</p>
         {% endif %}
-        {% include "user/reservations_sidebar.html" %}
-      </aside>
-    {% endif %} -->
-
-    <div class="flex-grow-1 p-4">
-      <h1>Tilojen vuokraus ja lainaus</h1>
-      <h2>Tilat</h2>      
-      <p>Näe kaikki <a href="spaces/">tilat</a></p>
+      </div>
+      
+      <!-- Nappi kaikkien varausten näyttämiseen -->
+      <div class="text-center mt-3">
+        <a href="{% url 'my_reservations' %}" class="btn btn-primary btn-sm">Näytä kaikki varaukset</a>
+      </div>
     </div>
-  </div>
+  </aside>
+  {% endif %}
+
+  <!-- Pääsisältö -->
+  <main class="main-content {% if user.is_authenticated %}with-sidebar{% endif %}">
+    <div class="main">
+      <div class="mycard-body">
+        <h1>Tilojen vuokraus ja lainaus</h1>
+        <h2>Tilat</h2>
+        <p>Näe kaikki <a href="spaces/">tilat</a></p><br>
+        {% if not user.is_authenticated %}
+        <h2>Kirjaudu sisään</h2>
+        <p><a href="{% url 'login' %}">Kirjaudu sisään</a> nähdäksesi omat varauksesi ja tehdäksesi uusia varauksia.</p>
+        {% endif %}
+      </div>
+    </div>
+  </main>
+</div>
 {% endblock %}
