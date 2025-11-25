@@ -1,0 +1,41 @@
+{% extends "master.html" %}
+
+{% block title %}
+    Vahvista varauksen peruutus
+{% endblock %}
+
+{% blockcontent %}
+    <div class="container mt-4">
+        <div class="card">
+            <div class="card-header bg-warning">
+                <h4 class="mb-0">Vahvista varauksen peruutus</h4>
+            </div>
+            <div class="card-body">
+                <p>Haluatko varmasti peruuttaa seuraavab varauksen</p>
+                <ul>
+                    <li><strong>Tila:</strong>
+                        {% if reservation.space.type == "office" %}
+                            Toimisto
+                        {% elif reservation.space.type == "meeting_room" %}
+                            Kokoushuone
+                        {% elif reservation.space.type == "conference_room" %}
+                            Konferenssihuone
+                        {% elif reservation.space.type == "event_space" %}
+                            Tapahtumatila
+                        {% else %}
+                            {{ reservation.space.type }}
+                        {% endif %}
+                    </li>
+                    <li><strong>Sijainti:</strong> {{ reservation.space.location }}</li>
+                    <li><strong>Alkaa:</strong> {{ reservation.start|date:"d.m.Y H:i" }}</li>
+                    <li><strong>Loppuu:</strong> {{ reservation.end|date:"d.m.Y H:i" }}</li>
+                </ul>
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Kyllä, peruuta varaus</button>
+                    <a href="{% url 'my_reservations' %}" class="btn btn-secondary">Peruuta</a>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

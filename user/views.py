@@ -16,6 +16,7 @@ from django.contrib import messages
 from django.utils.text import slugify
 from django.db.models import IntegerField
 from django.db.models.functions import Cast
+from django.db import models
 
 # Python
 # -----
@@ -31,7 +32,6 @@ from .models import Space, Event
 # from django.db.models import Q
 # https://www.w3schools.com/django/django_queryset_filter.php/ Filtterointi tapoja/suodatustapoja koodiin!
 
-
 # FUNKTIOT
 # ========
 
@@ -40,7 +40,6 @@ def main(request):
     """Render the application's main page."""
     template = loader.get_template('main.html')
     return HttpResponse(template.render({}, request))
-
 
 # Rekisteröityminen
 def register(request):
@@ -60,6 +59,26 @@ def register(request):
                 Profile = None
             if Profile and phone:
                 Profile.objects.create(user=user, phone=phone)
+
+            # Ensure an AppUser profile exists for this auth.User so the
+            # app-specific User-ID is available immediately after
+            # registration. Use get_or_create to keep this idempotent.
+            try:
+                from .models import AppUser
+                slug_val = slugify(f"{user.first_name} {user.last_name}") or slugify(user.username)
+                AppUser.objects.get_or_create(
+                    user=user,
+                    defaults={
+                        'firstname': user.first_name or '',
+                        'lastname': user.last_name or '',
+                        'email': user.email or None,
+                        'joined_date': timezone.localdate(),
+                        'slug': slug_val,
+                    }
+                )
+            except Exception:
+                # Do not block registration on profile creation errors
+                pass
 
             return redirect("registration-success")
     else:
@@ -159,6 +178,63 @@ def user_details(request, user_id):
     template = loader.get_template('users_details.html')
     return HttpResponse(template.render({'mymember': mymember}, request))
 
+#TODO: Omat varaukset -näkymä docstring
+@login_required
+def my_reservations(request):
+    """_summary_
+
+    Args:
+        request (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
+    #Get all events where the user is either the authenticated user OR the resever_email matches
+    user_events = Event.objects.filter(
+        models.Q(user=request.user) | 
+        models.Q(reserver_email=request.user.email)
+    ).order_by('-start')
+
+    # Separate current and past reservations
+    now = timezone.now()
+    current_reservation = user_events.filter(end__gte=now)
+    past_reservation = user_events.filter(end__lt=now)
+
+    context = {
+        'current_reservations': current_reservation,
+        'past_reservations': past_reservation,
+        'now': now,
+    }
+
+    return render(request, 'user/my_reservations.html', context)
+
+#TODO: Varauksen poisto docstring
+@login_required
+def delete_reservation(request, reservation_id):
+    """_summary_
+
+    Args:
+        request (_type_): _description_
+        reservation_id (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
+    reservation = get_object_or_404(Event, id=reservation_id)
+
+    # Tarkistetaan onko käyttäjä poistamassa omaa varausta
+    if reservation.user != request.user and reservation.reserver_email != request.user.email:
+      messages.error(request, 'Sinulla ei ole oikeutta poistaa tätä varausta.')
+      return redirect('my_reservations')
+    
+    # Varauksen onnistunut poisto
+    if request.method == 'POST':
+        reservation.delete()
+        messages.success(request, 'Varaus peruutettu onnistuneesti')
+        return redirect('my_reservations')
+    
+    #
+    return render(request, 'user/confirm_delete.html', {'reservation': reservation})
 
 # Tilojen listausnäkymä
 def spaces(request):
@@ -210,6 +286,7 @@ def spaces(request):
 def spaces_details(request, slug):
     """Render a page showing details for a single space identified by slug."""
     myspaces = get_object_or_404(Space, slug=slug)
+    print(myspaces)
     template = loader.get_template('spaces_details.html')
     return HttpResponse(template.render({'myspaces': myspaces}, request))
 
@@ -231,7 +308,11 @@ def events_json(request, space_id):
             "title": event.title,
             "start": event.start.isoformat(),
             "end": event.end.isoformat() if event.end else None,
-            "user_email": event.user.email if event.user else None,
+            # Prefer the snapshot reserver_email stored on the event (if the
+            # reserver filled the booking form). Fall back to the linked
+            # app/auth user email when available.
+            "user_email": (event.reserver_email or (event.user.email if event.user else None)),
+            "user_id": event.user.id,
             "color": "red" if event.title.lower() == "varattu" else "green"
         }
         for event in events
@@ -258,8 +339,19 @@ def add_event(request):
         if overlap:
             return JsonResponse({"status": "error", "message": "Päällekkäinen varaus!"}, status=400)
 
+        # Prefer explicit email provided in the booking payload. If none is
+        # provided and the request is authenticated, use the auth user's email.
+        reserver_email = data.get("email") or (request.user.email if getattr(request, 'user', None) and request.user.is_authenticated else None)
+
         user_obj = request.user if request.user.is_authenticated else None
-        Event.objects.create(space=space, user=user_obj, title=data["title"], start=start, end=end)
+        Event.objects.create(
+            space=space,
+            user=user_obj,
+            title=data["title"],
+            start=start,
+            end=end,
+            reserver_email=reserver_email,
+        )
         return JsonResponse({"status": "ok"})
 
 

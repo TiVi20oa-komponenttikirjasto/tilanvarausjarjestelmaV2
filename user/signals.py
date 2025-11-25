@@ -4,7 +4,7 @@ from django.dispatch import receiver
 from django.utils.text import slugify
 from django.utils import timezone
 
-from .models import User as AppUser
+from .models import AppUser
 
 
 @receiver(post_save, sender=AuthUser)
@@ -27,18 +27,13 @@ def create_app_user_for_auth_user(sender, instance, created, **kwargs):
         lastname = instance.last_name or ''
         slug_candidate = slugify((firstname + ' ' + lastname)[:50]) or slugify(instance.username)
         app_user = AppUser.objects.create(
+            user=instance,
             firstname=firstname,
             lastname=lastname,
             email=instance.email or None,
             joined_date=timezone.localdate(),
             slug=slug_candidate,
         )
-        try:
-            app_user.external_id = str(app_user.idNumber)
-            app_user.save(update_fields=['external_id'])
-        except Exception:
-            # best-effort: do not break auth user creation
-            pass
     except Exception:
         # swallow any exception to avoid blocking user creation
         pass
