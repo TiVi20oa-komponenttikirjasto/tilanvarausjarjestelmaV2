@@ -322,8 +322,15 @@ def events_json(request, space_id):
             # Prefer the snapshot reserver_email stored on the event (if the
             # reserver filled the booking form). Fall back to the linked
             # app/auth user email when available.
-            "user_email": (event.reserver_email or (event.user.email if event.user else None)),
-            "user_id": event.user.id,
+            "reserver_email": (event.reserver_email or (event.user.email if event.user else None)),
+            # Provide the linked auth.User id (if any) and the app-level
+            # AppUser idNumber when available so the frontend can reliably
+            # determine ownership without relying on string comparisons.
+            "user_id": (event.user.id if event.user else None),
+            "reserver_app_id": (
+                (getattr(event.user, 'app_profile', None).idNumber)
+                if event.user and getattr(event.user, 'app_profile', None) else None
+            ),
             "color": "red" if event.title.lower() == "varattu" else "green"
         }
         for event in events
