@@ -109,8 +109,8 @@
                                             {% endif %}
                                         </td>
                                         <td>{{ reservation.space.location }}</td>
-                                        <td>{{ reservation.start|date:"d.n.Y H:i" }}</td>
-                                        <td>{{ reservation.end|date:"d.n.Y H:i" }}</td>
+                                        <td>{{ reservation.start|date:"d.m.Y H:i" }}</td>
+                                        <td>{{ reservation.end|date:"d.m.Y H:i" }}</td>
                                         <td>
                                             <span class="badge bg-secondary">{{ reservation.title }}</span>
                                         </td>
