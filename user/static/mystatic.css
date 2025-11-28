@@ -352,6 +352,12 @@ a:link, a:visited {
   font-size: 0.875rem;
 }
 
+.btn-lg {
+  padding: 0.5rem 1rem;
+  font-size: 1.25rem;
+  border-radius: 0;
+}
+
 .text-center {
   text-align: center;
 }

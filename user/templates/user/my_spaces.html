@@ -1,0 +1,166 @@
+<!-- Tämä sivu näyttää kirjautuneen käyttäjän luomat tilat -->
+{% extends "master.html" %}
+
+{% block title %}
+    Omat tilat
+{% endblock %}
+
+{% block content %}
+<div class="layout-container">
+    {% if user.is_authenticated %}
+    <!-- Vasen sivupalkki: Omat varaukset -->
+    <aside class="sidebar-left">
+        <div class="reservations-sidebar">
+            <h3>Omat varaukset</h3>
+
+        <!-- Nykyiset varaukset -->
+        <div class="reservation-section">
+            <h5>Nykyiset varaukset</h5>
+            {% if current_reservations %}
+            <div class="reservation-list">
+                {% for reservation in current_reservations %}
+                <div class="reservation-item">
+                    <div class="reservation-space">
+                      <strong>
+                        {% if reservation.space.type == "office" %}
+                          Toimisto
+                        {% elif reservation.space.type == "meeting_room" %}
+                          Kokoushuone
+                        {% elif reservation.space.type == "conference_room" %}
+                          Konferenssihuone
+                        {% elif reservation.space.type == "event_space" %}
+                          Tapahtumatila
+                        {% else %}
+                          {{ reservation.space.type }}
+                        {% endif %}
+                      </strong>
+                      - {{ reservation.space.location }}
+                    </div>
+                    <div class="reservation-time">
+                        {{ reservation.start|date:"d.m.Y H:i" }} - {{ reservation.end|date:"d.m.Y H:i" }}
+                    </div>
+                    <div class="reservation-actions">
+                      <a href="{% url 'delete_reservation' reservation.id %}" 
+                         class="btn btn-sm btn-danger"
+                         onclick="return confirm('Haluatko varmasti peruuttaa varauksen?')">
+                        Peruuta
+                      </a>
+                    </div>
+                </div>
+              {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-muted">Ei nykyisiä varauksia</p>
+          {% endif %}
+        </div>
+
+            <!-- Nappi kaikkien varausten näyttämiseen -->
+            <div class="text-center mt-3">
+                <a href="{% url 'my_reservations' %}" class="btn btn-primary btn-sm">Näytä kaikki varaukset</a>
+            </div>
+        </div>
+    </aside>
+    {% endif %}
+
+    <!-- Pääsisältö -->
+    <main class="main-content {% if user.is_authenticated %}with-sidebar{% endif %}">
+        <div class="main">
+            <h1>Omat tilat</h1>
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- Nappi uuden tilan luomiseen -->
+            <div class="text-center mb-4">
+                <a href="{% url 'create_space' %}" class="btn btn-primary btn-lg">
+                    + Luo uusi tila
+                </a>
+            </div>
+
+            <!-- Tilojen listaus -->
+            <div class="cards-container">
+                {% for tila in user_spaces %}
+                <!-- Kortti alkaa tästä -->
+                <div class="mycard">
+                    <!-- Kortin header -->
+                    <div class="mycard-header">
+                        <h1>
+                            {% if tila.type == "office" %}
+                                Toimisto
+                            {% elif tila.type == "meeting_room" %}
+                                Kokoushuone
+                            {% elif tila.type == "conference_room" %}
+                                Konferenssihuone
+                            {% elif tila.type == "event_space" %}
+                                Tapahtumatila
+                            {% else %}
+                                Ei määritelty
+                            {% endif %}
+                        </h1>
+                        <h2>{{ tila.location }}</h2>
+                    </div>
+
+                    <!-- Kortin sisältö -->
+                    <div class="mycard-body">
+                        <p><strong>Sijainti:</strong> {{ tila.location }}</p>
+                        <p><strong>Tyyppi:</strong>
+                            {% if tila.type == "office" %}
+                                Toimisto
+                            {% elif tila.type == "meeting_room" %}
+                                Kokoushuone
+                            {% elif tila.type == "conference_room" %}
+                                Konferenssihuone
+                            {% elif tila.type == "event_space" %}
+                                Tapahtumatila
+                            {% else %}
+                                {{ tila.type }}
+                            {% endif %}
+                        </p>
+                        <p><strong>Julkisuus:</strong>
+                            {% if tila.publicity == "public" %}
+                                Julkinen
+                            {% else %}
+                                Yksityinen
+                            {% endif %}
+                        </p>
+                        <p><strong>Palvelu:</strong>
+                            {% if tila.service_type == "rental" %}
+                                Vuokra
+                            {% else %}
+                                Laina
+                            {% endif %}
+                        </p>
+                        <p><strong>Koko:</strong> {{ tila.size }} m²</p>
+                        <p><strong>Kapasiteetti:</strong> {{ tila.capacity }} henkilöä</p>
+                        
+                        <!-- Toiminnot -->
+                        <div class="text-center mt-3">
+                            <a href="{% url 'spaces_details' tila.slug %}" class="btn btn-outline-primary">Näytä tiedot</a>
+                            <!-- Voit lisätä muokkaus- ja poistonappuloita tähän tulevaisuudessa -->
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <!-- Tyhjä tila - näytetään kun käyttäjällä ei ole tiloja -->
+                <div class="mycard">
+                    <div class="mycard-header">
+                        <h1>Ei omia tiloja</h1>
+                    </div>
+                    <div class="mycard-body">
+                        <p>Sinulla ei ole vielä omia tiloja. Aloita luomalla ensimmäinen tilasi!</p>
+                        <div class="text-center">
+                            <a href="{% url 'create_space' %}" class="btn btn-primary">Luo ensimmäinen tilasi</a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}
