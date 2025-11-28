@@ -157,6 +157,22 @@ def edit_profile(request):
         },
     )
 
+# Kirjautuneen käyttäjän luomat tilat
+@login_required
+def my_spaces(request):
+    user_spaces = Space.objects.filter(owner=request.user)
+    context = {
+        'user_spaces': user_spaces
+    }
+
+    if request.user.is_authenticated:
+      user_event = Event.objects.filter(
+          models.Q(user = request.user) | 
+          models.Q(reserver_email = request.user.email)
+      ).filter(end__gte=timezone.now()).order_by('start')[:5]
+      context['current_reservations'] = user_event
+
+    return render(request, 'user/my_spaces.html', context)
 
 # Tilan luominen (Kirjautuminen vaadittu)
 @login_required
