@@ -35,78 +35,83 @@ class AppUser(models.Model):
 
 # Malli joka kuvaa uutta tilaa sovelluksessa.
 class Space(models.Model):
-  """Model representing new space in the application.
+    """Model representing a space in the application.
 
-  Args:
-      idNumber (BigAutoField): Unique identifier for the space
-      owner (ForeignKey) Owner of the space
-      location (CharField): Location of the space
-      publicity (CharField): Publicity status of the space (private or public)
-      service_type (CharField): Service type of the space (rental or loan)
-      type (CharField): Type of the space
-      size (CharField): Size of the space in square meters
-      capacity (CharField): Capacity of the space
-      slug (SlugField): Slug field for URL identification
+    Fields added: `address` and `municipality` (both optional) to provide
+    street-level address and municipality display on space cards.
+    """
 
-  Returns:
-      str: String representation of the space
-  """
-  idNumber = models.BigAutoField(auto_created=True, primary_key=True, serialize=True, verbose_name='ID')
-  owner = models.ForeignKey(
-    settings.AUTH_USER_MODEL,
-    on_delete=models.CASCADE,
-    related_name='space',
-    null=True,
-    blank=True,
-    verbose_name='Owner'
+    idNumber = models.BigAutoField(auto_created=True, primary_key=True, serialize=True, verbose_name='ID')
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='space',
+        null=True,
+        blank=True,
+        verbose_name='Owner'
     )
-  location = models.CharField(max_length=255, null=False)
-  publicity = models.CharField(
-      max_length=20,
-      choices=[
-          ('', 'Valitse tilan julkisuus'),
-          ('private', 'Yksityinen'),
-          ('public', 'Julkinen')
-      ],
-      default=''
-  )
 
-  service_type = models.CharField(
-      max_length=20,
-      choices=[
-          ('', 'Valitse tilan palvelutyyppi'),
-          ('rental', 'Vuokra'),
-          ('loan', 'Laina')
-      ],
-      default=''
-  )
+    # Free-form location (legacy). Prefer `address` for detailed street info.
+    location = models.CharField(max_length=255, null=False)
 
-  type = models.CharField(
-    max_length=20,
-    choices=[
-        ('', 'Valitse tilan tyyppi'),
-        ('office', 'Toimisto'),
-        ('meeting_room', 'Kokoushuone'),
-        ('conference_room', 'Konferenssihuone'),
-        ('event_space', 'Tapahtumatila')
-    ],
-    default=''
-  )
-  
-  size = models.CharField(max_length=10, verbose_name="Size m²", default="0", blank=True)
-  capacity = models.CharField(max_length=10, verbose_name="Capacity", default="0", blank=True)
-  slug = models.SlugField(default="", null=False)
+    # Optional detailed address (street address) shown on space cards
+    address = models.CharField(max_length=255, blank=True, default='')
 
-  def save(self, *args, **kwargs):
-    if not self.idNumber:
+    # Municipality / city for display (paikkakunta)
+    municipality = models.CharField(max_length=128, blank=True, default='')
+
+    publicity = models.CharField(
+        max_length=20,
+        choices=[
+            ('', 'Valitse tilan julkisuus'),
+            ('private', 'Yksityinen'),
+            ('public', 'Julkinen')
+        ],
+        default=''
+    )
+
+    service_type = models.CharField(
+        max_length=20,
+        choices=[
+            ('', 'Valitse tilan palvelutyyppi'),
+            ('rental', 'Vuokra'),
+            ('loan', 'Laina')
+        ],
+        default=''
+    )
+
+    type = models.CharField(
+        max_length=20,
+        choices=[
+            ('', 'Valitse tilan tyyppi'),
+            ('office', 'Toimisto'),
+            ('meeting_room', 'Kokoushuone'),
+            ('conference_room', 'Konferenssihuone'),
+            ('event_space', 'Tapahtumatila')
+        ],
+        default=''
+    )
+
+    size = models.CharField(max_length=10, verbose_name="Size m²", default="0", blank=True)
+    capacity = models.CharField(max_length=10, verbose_name="Capacity", default="0", blank=True)
+    slug = models.SlugField(default="", null=False)
+
+    def save(self, *args, **kwargs):
+        # Ensure the instance is saved so a primary key exists for slug generation.
+        created = self.pk is None
+        if created:
+            super().save(*args, **kwargs)
+
+        # Generate slug if missing (after instance has a primary key)
+        if not self.slug:
+            base_slug = slugify(f"{self.type}-{self.location}-{self.idNumber}")
+            self.slug = base_slug
+
+        # Always save to persist any changes (address, municipality, etc.)
         super().save(*args, **kwargs)
-    if not self.slug:
-        base_slug = slugify(f"{self.type}-{self.location}-{self.idNumber}")
-        self.slug = base_slug
-        super().save(update_fields=['slug'])
 
-  def __str__(self):
-      return f"ID: {self.idNumber}"
+    def __str__(self):
+        return f"ID: {self.idNumber}"
 
 # Malli joka kuvaa yksittäistä varausta sovelluksessa.
 class Event(models.Model):
