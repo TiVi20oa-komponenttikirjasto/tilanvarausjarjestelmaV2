@@ -132,20 +132,24 @@ body {
   margin:20px 0 60px 0;
 }
 
-.mycard h2 {
-  text-align: center;
-  color:#ffffff;
-  margin:20px 0 60px 0;
-}
-
-.cards-container {
+.mycard-header {
   display: flex;
-  flex-wrap: wrap;
-  gap: 24px;
-  justify-content: flex-start;
-  margin-top: 20px;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 12px 16px;
 }
 
+/* Ensure header texts (type and location) are white and positioned on the blue area */
+.mycard .mycard-header h1,
+.mycard .mycard-header h2 {
+  color: #ffffff;
+  margin: 0;
+  line-height: 1.1;
+}
+
+.mycard .mycard-header h1 { font-size: 18px; font-weight: 700; }
+.mycard .mycard-header h2 { font-size: 14px; opacity: 0.95; }
 ul {
   list-style-type: none;
   padding: 0;
@@ -343,6 +347,7 @@ a:link, a:visited {
 .mb-4 {
   margin-bottom: 1.5rem;
 }
+
 
 .form-label {
   margin-bottom: 0.5rem;
