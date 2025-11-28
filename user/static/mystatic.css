@@ -26,6 +26,61 @@ body {
   text-decoration: underline;
 }
 
+.horizontal-filters {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 30px;
+  border: 1px solid #dee2e6;
+}
+
+.filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 15px;
+  align-items: end;
+}
+
+.filter-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.filter-item label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 5px;
+  color: #495057;
+}
+
+.filter-range {
+  display: flex;
+  gap: 8px;
+}
+
+.filter-range input {
+  flex: 1;
+}
+
+.filter-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-left: flex-start;
+}
+
+.horizontal-filters .form-control,
+.horizontal-filters .form-select {
+  height: 38px;
+  font-size: 0.875rem;
+}
+
+.horizontal-filters .btn {
+  height: 38px;
+  white-space: nowrap;
+  min-width: 80px;
+}
+
 .mycard {
   background-color: #f1f1f1;
   margin: 40px auto;
@@ -233,23 +288,19 @@ a:link, a:visited {
 }
 
 /* Responsiivinen tyyli */
+@media (max-width: 1200px) {
+  .filter-grid {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  }
+}
+
 @media (max-width: 768px) {
-  .layout-container {
-    flex-direction: column;
+  .filter-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
   }
 
-  .sidebar-left {
-    width: 100%;
-    border-right: none;
-    border-bottom: 1px solid #dee2e6;
-  }
-
-  .main-content.with-sidebar {
-    margin-left: 0;
-    max-width: 100%;
-  }
-  
-  .cards-container {
+  .filter-actions {
     justify-content: center;
   }
 }
