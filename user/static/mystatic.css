@@ -150,6 +150,22 @@ body {
 
 .mycard .mycard-header h1 { font-size: 18px; font-weight: 700; }
 .mycard .mycard-header h2 { font-size: 14px; opacity: 0.95; }
+/* ID badge in header (top-right) */
+.mycard .mycard-header {
+  position: relative;
+}
+.mycard .mycard-header .space-id {
+  position: absolute;
+  right: 12px;
+  top: 10px;
+  background: rgba(255,255,255,0.1);
+  color: #ffffff;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  opacity: 0.95;
+}
 ul {
   list-style-type: none;
   padding: 0;
