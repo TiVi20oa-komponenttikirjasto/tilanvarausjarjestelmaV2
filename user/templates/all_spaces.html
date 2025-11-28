@@ -79,78 +79,73 @@
       <h1>Kaikki tilat</h1>
 
       <!-- Hakulomake -->
-      <div class="mycard">
-        <div class="mycard-header">
-          <h2>Hae tiloja</h2>
-        </div>
-        <div class="mycard-body">
-          <form method="get" class="mb-4">
-            <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:end;">
+      <div class="horizontal-filters">
+        <form method="get" class="mb-0">
+          <div class="filter-grid">
 
-              <!-- Tilan sijainti -->
-              <div>
-                <label class="form-label"><small>Sijainti</small></label>
-                <input type="text" name="location" placeholder="Sijainti" value="{{ request.GET.location|default:'' }}" class="form-control" style="width: 180px;">
-              </div>
+            <!-- Tilan sijainti -->
+            <div class="filter-item">
+              <label >Sijainti</label>
+              <input type="text" name="location" placeholder="Sijainti" value="{{ request.GET.location|default:'' }}" class="form-control">
+            </div>
 
-              <!-- Tilan tyyppi -->
-              <div>
-                <label class="form-label"><small>Tilan Tyyppi</small></label>
-                <select name="type" class="form-select" style="width: 160px;">
-                  <option value="">Kaikki tyypit</option>
-                  <option value="office" {% if request.GET.type == 'office' %}selected{% endif %}>Toimisto</option>
-                  <option value="meeting_room" {% if request.GET.type == 'meeting_room' %}selected{% endif %}>Kokoushuone</option>
-                  <option value="conference_room" {% if request.GET.type == 'conference_room' %}selected{% endif %}>Konferenssihuone</option>
-                  <option value="event_space" {% if request.GET.type == 'event_space' %}selected{% endif %}>Tapahtumatila</option>
-                </select>
-              </div>
+            <!-- Tilan tyyppi -->
+            <div class="filter-item">
+              <label>Tilan Tyyppi</label>
+              <select name="type" class="form-select">
+                <option value="">Kaikki tyypit</option>
+                <option value="office" {% if request.GET.type == 'office' %}selected{% endif %}>Toimisto</option>
+                <option value="meeting_room" {% if request.GET.type == 'meeting_room' %}selected{% endif %}>Kokoushuone</option>
+                <option value="conference_room" {% if request.GET.type == 'conference_room' %}selected{% endif %}>Konferenssihuone</option>
+                <option value="event_space" {% if request.GET.type == 'event_space' %}selected{% endif %}>Tapahtumatila</option>
+              </select>
+            </div>
 
-              <!-- Tilan julkisuus -->
-              <div>
-                <label class="form-label"><small>Julkisuus</small></label>
-                <select name="publicity" class="form-select" style="width: 160px;">
-                  <option value="">Kaikki julkisuudet</option>
-                  <option value="public" {% if request.GET.publicity == 'public' %}selected{% endif %}>Julkinen</option>
-                  <option value="private" {% if request.GET.publicity == 'private' %}selected{% endif %}>Yksityinen</option>
-                </select>
-              </div>
+            <!-- Tilan julkisuus -->
+            <div class="filter-item">
+              <label>Julkisuus</label>
+              <select name="publicity" class="form-select">
+                <option value="">Kaikki julkisuudet</option>
+                <option value="public" {% if request.GET.publicity == 'public' %}selected{% endif %}>Julkinen</option>
+                <option value="private" {% if request.GET.publicity == 'private' %}selected{% endif %}>Yksityinen</option>
+              </select>
+            </div>
 
-              <!-- Tilan palvelutyyppi -->
-              <div>
-                <label class="form-label"><small>Palvelutyyppi</small></label>
-                <select name="service_type" class="form-select" style="width:140px;">
-                  <option value="">Kaikki palvelut</option>
-                  <option value="rental" {% if request.GET.service_type == 'rental' %}selected{% endif %}>Vuokra</option>
-                  <option value="loan" {% if request.GET.service_type == 'loan' %}selected{% endif %}>Laina</option>
-                </select>
-              </div>
+            <!-- Tilan palvelutyyppi -->
+            <div class="filter-item">
+              <label>Palvelutyyppi</label>
+              <select name="service_type" class="form-select">
+                <option value="">Kaikki palvelut</option>
+                <option value="rental" {% if request.GET.service_type == 'rental' %}selected{% endif %}>Vuokra</option>
+                <option value="loan" {% if request.GET.service_type == 'loan' %}selected{% endif %}>Laina</option>
+              </select>
+            </div>
 
-              <!-- Tilan koko neliömetreissä m² -->
-              <div>
-                <label class="form-label"><small>Koko (m²)</small></label>
-                <div style="display:flex;gap:8px;">
-                  <input type="number" name="min_size" placeholder="Min" value="{{ request.GET.min_size|default:'' }}" class="form-control" style="width:80px;" />
-                  <input type="number" name="max_size" placeholder="Max" value="{{ request.GET.max_size|default:'' }}" class="form-control" style="width:80px;" />
-                </div>
-              </div>
-
-              <!-- Tilan kapasiteetti -->
-              <div>
-                <label class="form-label"><small>Kapasiteetti</small></label>
-                <div style="display: flex; gap: 8px;">
-                  <input type="number" name="min_capacity" placeholder="Min" value="{{ request.GET.min_capacity|default:'' }}" class="form-control" style="width: 80px;">
-                  <input type="number" name="max_capacity" placeholder="Max" value="{{ request.GET.max_capacity|default:'' }}" class="form-control" style="width: 80px;">
-                </div>
-              </div>
-
-              <!-- Painikkeet -->
-              <div>
-                <button type="submit" class="btn btn-primary">Hae</button>
-                <a href="{% url 'spaces' %}" class="btn btn-secondary">Tyhjennä</a>
+            <!-- Tilan koko neliömetreissä m² -->
+            <div class="filter-item">
+              <label>Koko (m²)</label>
+              <div style="display: flex; gap: 5px;">
+                <input type="number" name="min_size" placeholder="Min" value="{{ request.GET.min_size|default:'' }}" class="form-control" style="width:80px;" />
+                <input type="number" name="max_size" placeholder="Max" value="{{ request.GET.max_size|default:'' }}" class="form-control" style="width:80px;" />
               </div>
             </div>
-          </form>
-        </div>
+
+            <!-- Tilan kapasiteetti -->
+            <div class="filter-item">
+              <label>Kapasiteetti</label>
+              <div style="display: flex; gap: 5px;">
+                <input type="number" name="min_capacity" placeholder="Min" value="{{ request.GET.min_capacity|default:'' }}" class="form-control" style="width: 80px;">
+                <input type="number" name="max_capacity" placeholder="Max" value="{{ request.GET.max_capacity|default:'' }}" class="form-control" style="width: 80px;">
+              </div>
+            </div>
+
+            <!-- Painikkeet -->
+            <div class="filter-item filter-actions">
+              <button type="submit" class="btn btn-primary">Hae</button>
+              <a href="{% url 'spaces' %}" class="btn btn-secondary">Tyhjennä</a>
+            </div>
+          </div>
+        </form>
       </div>
 
       <!-- Tilojen listaus -->
@@ -230,7 +225,7 @@
             <p><strong>Kapasiteetti:</strong> {{ tila.capacity }} henkilöä</p>
 
             <!-- Nappi jolla näytetään tilan tiedot -->
-            <div class="text-center">
+            <div class="text-center mt-3">
               <a href="{% url 'spaces_details' tila.slug %}" class="btn btn-outline-primary">Näytä tiedot & varaa</a>
             </div>
           </div>
