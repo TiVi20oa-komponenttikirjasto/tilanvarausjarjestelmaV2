@@ -11,6 +11,10 @@ body {
   background-color:#375BDC;
   color:#ffffff;
   padding:10px;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .topnav a:link, .topnav a:visited {
@@ -20,6 +24,61 @@ body {
 
 .topnav a:hover, .topnav a:active {
   text-decoration: underline;
+}
+
+.horizontal-filters {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 30px;
+  border: 1px solid #dee2e6;
+}
+
+.filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 15px;
+  align-items: end;
+}
+
+.filter-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.filter-item label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-bottom: 5px;
+  color: #495057;
+}
+
+.filter-range {
+  display: flex;
+  gap: 8px;
+}
+
+.filter-range input {
+  flex: 1;
+}
+
+.filter-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-left: flex-start;
+}
+
+.horizontal-filters .form-control,
+.horizontal-filters .form-select {
+  height: 38px;
+  font-size: 0.875rem;
+}
+
+.horizontal-filters .btn {
+  height: 38px;
+  white-space: nowrap;
+  min-width: 80px;
 }
 
 .mycard {
@@ -162,7 +221,11 @@ a:link, a:visited {
 
 .layout-container {
   display: flex;
-  min-height: calc(100vh - 80px); /* Adjust based on your nav height */
+  min-height: calc(100vh - 140px);
+  gap: 20px;
+  max-width: auto;
+  margin: 0 auto;
+  padding: 20px;
 }
 
 .sidebar-left, .sidebar-right {
@@ -178,15 +241,11 @@ a:link, a:visited {
   padding: 20px;
 }
 
-.main-content.with-sidebar {
-  margin-left: 0;
-}
-
 .reservations-sidebar h3 {
   color: #495057;
   border-bottom: 2px solid #007bff;
   padding-bottom: 10px;
-  margin-bottom: 20pz;
+  margin-bottom: 20px;
 }
 
 .reservation-section {
@@ -209,11 +268,12 @@ a:link, a:visited {
   border: 1px solid #e9ecef;
   border-radius: 5px;
   padding: 12px;
+  margin-bottom: 10px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
 .reservation-space {
-  font-size: o.9rem;
+  font-size: 0.9rem;
   margin-bottom: 5px;
 }
 
@@ -223,25 +283,35 @@ a:link, a:visited {
   margin-bottom: 8px;
 }
 
-.reservation-action {
+.reservation-actions {
   text-align: right;
 }
 
 /* Responsiivinen tyyli */
+@media (max-width: 1200px) {
+  .filter-grid {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  }
+}
+
 @media (max-width: 768px) {
-  .layout-container {
-    flex-direction: column;
+  .filter-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
   }
 
-  .sidebar-left {
-    width: 100%;
-    border-radius: none;
-    border-bottom: 1px solid #dee2e6;
+  .filter-actions {
+    justify-content: center;
   }
+}
 
-  .main-content.with-sidebar {
-    margin-left: 0;
-  }
+.main-content.with-sidebar {
+  max-width: calc(100% - 370px);
+  margin-left: 0;
+}
+
+.form-control, .form-select {
+  margin-bottom: 8px;
 }
 
 .varattu-paiva {
@@ -255,4 +325,38 @@ a:link, a:visited {
 
 .fc-daygrid-event {
   display: none !important;
+}
+
+.btn-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.mt-3 {
+  margin-top: 1rem;
+}
+
+.mb-4 {
+  margin-bottom: 1.5rem;
+}
+
+.form-label {
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.btn {
+  margin: 2px;
+}
+
+.btn {
+  margin: 2px;
+}
+
+.mycard-body .text-center {
+  margin-top: 15px;
 }

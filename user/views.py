@@ -288,9 +288,17 @@ def spaces(request):
             qs = qs.filter(capacity_int__lte=int(q_max_capacity))
     except ValueError:
         pass
+    
+    context = {'myspaces': qs}
+    if request.user.is_authenticated:
+      user_events = Event.objects.filter(
+          models.Q(user=request.user) | 
+          models.Q(reserver_email=request.user.email)
+      ).filter(end__gte=timezone.now()).order_by('start')[:5]
+      context['current_reservations'] = user_events
 
     template = loader.get_template('all_spaces.html')
-    return HttpResponse(template.render({'myspaces': qs}, request))
+    return HttpResponse(template.render(context, request))
 
 
 # Yksittäisen tilan tietojen näkymä

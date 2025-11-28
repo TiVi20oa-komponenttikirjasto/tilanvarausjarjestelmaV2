@@ -6,67 +6,248 @@
 {% endblock %}
 
 {% block content %}
-  <div>
-    <form method="get" class="mb-3">
-      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-        <input type="text" name="location" placeholder="Sijainti" value="{{ filters.location|default:'' }}" class="form-control" style="width:180px;" />
-        <select name="type" class="form-select" style="width:160px;">
-          <option value="">Kaikki tyypit</option>
-          <option value="office" {% if filters.type == 'office' %}selected{% endif %}>Toimisto</option>
-          <option value="meeting_room" {% if filters.type == 'meeting_room' %}selected{% endif %}>Kokoushuone</option>
-          <option value="conference_room" {% if filters.type == 'conference_room' %}selected{% endif %}>Konferenssihuone</option>
-          <option value="event_space" {% if filters.type == 'event_space' %}selected{% endif %}>Tapahtumatila</option>
-        </select>
-        <select name="publicity" class="form-select" style="width:160px;">
-          <option value="">Kaikki julkisuudet</option>
-          <option value="public" {% if filters.publicity == 'public' %}selected{% endif %}>Julkinen</option>
-          <option value="private" {% if filters.publicity == 'private' %}selected{% endif %}>Yksityinen</option>
-        </select>
-        <select name="service_type" class="form-select" style="width:140px;">
-          <option value="">Kaikki palvelutyypit</option>
-          <option value="rental" {% if filters.service_type == 'rental' %}selected{% endif %}>Vuokra</option>
-          <option value="loan" {% if filters.service_type == 'loan' %}selected{% endif %}>Laina</option>
-        </select>
-        <input type="number" name="min_size" placeholder="Min koko m²" value="{{ filters.min_size|default:'' }}" class="form-control" style="width:120px;" />
-        <input type="number" name="max_size" placeholder="Max koko m²" value="{{ filters.max_size|default:'' }}" class="form-control" style="width:120px;" />
-        <input type="number" name="min_capacity" placeholder="Min kapasiteetti" value="{{ filters.min_capacity|default:'' }}" class="form-control" style="width:140px;" />
-        <input type="number" name="max_capacity" placeholder="Max kapasiteetti" value="{{ filters.max_capacity|default:'' }}" class="form-control" style="width:140px;" />
-        <button type="submit" class="btn btn-primary">Hae</button>
-        <a href="{% url 'spaces' %}" class="btn btn-secondary text-white">Tyhjennä</a>
+<div class="layout-container">
+  {% if user.is_authenticated %}
+  <aside class="sidebar-left">
+    <div class="reservations-sidebar">
+      <h3>Omat varaukset</h3>
+
+      <!-- Nykyiset varaukset -->
+      <div class="reservation-section">
+        <h5>Nykyiset varaukset</h5>
+
+        <!-- If tarkistus onko varauksia -->
+        {% if current_reservations %}
+          <div class="reservation-list">
+            
+            <!-- For loop tarkistus, jokaisen varauksen kohdalla käännetään muuttujan nimi suomenkieliseksi -->
+            {% for reservation in current_reservations %}
+            <div class="reservation-item">
+              <div class="reservation-space">
+                <strong>
+                  {% if reservation.space.type == "office" %}
+                    Toimisto
+                  {% elif reservation.space.type == "meeting_room" %}
+                    Kokoushuone
+                  {% elif reservation.space.type == "conference_room" %}
+                    Konferenssihuone
+                  {% elif reservation.space.type == "event_space" %}
+                    Tapahtumatila
+                  {% else %}
+                    {{ reservation.space.type }}
+                  {% endif %}
+                </strong>
+
+                <!-- Asetetaan Tilan sijainti -->
+                - {{ reservation.space.location }}
+              </div>
+
+              <!-- Näytetään varauksen alkamis ja loppumis aika -->
+              <div class="reservation-time">
+                {{ reservation.start|date:"d.m.Y H:i" }} - {{ reservation.end|date:"d.m.Y H:i" }}
+              </div>
+
+              <!-- Nappi jolla peruuttaa varauksen (varauksen id:n perusteella) -->
+              <div class="reservation-actions">
+                <a href="{% url 'delete_reservation' reservation.id %}"
+                   class="btn btn-sm btn-danger"
+                   onclick="return confirm('Haluatko varmasti peruuttaa varauksen?')">
+                  Peruuta
+                </a>
+              </div>
+            </div>
+
+            <!-- Lopetetaan For loop -->
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="text-muted">Ei nykyisiä varauksia</p>
+        {% endif %}
       </div>
-    </form>
-    {% for tila in myspaces %}
 
-    <!-- Kortti alkaa tästä  -->
-      <div class="mycard">
+      <!-- Nappi kaikkien varausten näyttämiseen -->
+      <div class="text-center mt-3">
+        <a href="{% url 'my_reservations' %}" class="btn btn-primary btn-sm">Näytä kaikki varaukset</a>
+      </div>
+    </div>
+  </aside>
+  {% endif %}
 
-        <!-- Kortin header -->
-        <div class="mycard-header">
-          <h1>
-            {% if tila.type == "office" %}
-              Toimisto
-            {% elif tila.type == "meeting_room" %}
-              Kokoushuone
-            {% elif tila.type == "conference_room" %}
-              Konferenssihuone
-            {% elif tila.type == "event_space" %}
-              Tapahtumatila
-            {% else %}
-              Ei määritelty
-            {% endif %}
-            – {{ tila.location }}
-          </h1>
+  <!-- Pääsisältö alkaa tästä -->
+  <main class="main-content {% if user.is_authenticated %}with-sidebar{% endif %}">
+    <div class="main">
+      <h1>Kaikki tilat</h1>
+
+      <!-- Hakulomake -->
+      <div class="horizontal-filters">
+        <form method="get" class="mb-0">
+          <div class="filter-grid">
+
+            <!-- Tilan sijainti -->
+            <div class="filter-item">
+              <label >Sijainti</label>
+              <input type="text" name="location" placeholder="Sijainti" value="{{ request.GET.location|default:'' }}" class="form-control">
+            </div>
+
+            <!-- Tilan tyyppi -->
+            <div class="filter-item">
+              <label>Tilan Tyyppi</label>
+              <select name="type" class="form-select">
+                <option value="">Kaikki tyypit</option>
+                <option value="office" {% if request.GET.type == 'office' %}selected{% endif %}>Toimisto</option>
+                <option value="meeting_room" {% if request.GET.type == 'meeting_room' %}selected{% endif %}>Kokoushuone</option>
+                <option value="conference_room" {% if request.GET.type == 'conference_room' %}selected{% endif %}>Konferenssihuone</option>
+                <option value="event_space" {% if request.GET.type == 'event_space' %}selected{% endif %}>Tapahtumatila</option>
+              </select>
+            </div>
+
+            <!-- Tilan julkisuus -->
+            <div class="filter-item">
+              <label>Julkisuus</label>
+              <select name="publicity" class="form-select">
+                <option value="">Kaikki julkisuudet</option>
+                <option value="public" {% if request.GET.publicity == 'public' %}selected{% endif %}>Julkinen</option>
+                <option value="private" {% if request.GET.publicity == 'private' %}selected{% endif %}>Yksityinen</option>
+              </select>
+            </div>
+
+            <!-- Tilan palvelutyyppi -->
+            <div class="filter-item">
+              <label>Palvelutyyppi</label>
+              <select name="service_type" class="form-select">
+                <option value="">Kaikki palvelut</option>
+                <option value="rental" {% if request.GET.service_type == 'rental' %}selected{% endif %}>Vuokra</option>
+                <option value="loan" {% if request.GET.service_type == 'loan' %}selected{% endif %}>Laina</option>
+              </select>
+            </div>
+
+            <!-- Tilan koko neliömetreissä m² -->
+            <div class="filter-item">
+              <label>Koko (m²)</label>
+              <div style="display: flex; gap: 5px;">
+                <input type="number" name="min_size" placeholder="Min" value="{{ request.GET.min_size|default:'' }}" class="form-control" style="width:80px;" />
+                <input type="number" name="max_size" placeholder="Max" value="{{ request.GET.max_size|default:'' }}" class="form-control" style="width:80px;" />
+              </div>
+            </div>
+
+            <!-- Tilan kapasiteetti -->
+            <div class="filter-item">
+              <label>Kapasiteetti</label>
+              <div style="display: flex; gap: 5px;">
+                <input type="number" name="min_capacity" placeholder="Min" value="{{ request.GET.min_capacity|default:'' }}" class="form-control" style="width: 80px;">
+                <input type="number" name="max_capacity" placeholder="Max" value="{{ request.GET.max_capacity|default:'' }}" class="form-control" style="width: 80px;">
+              </div>
+            </div>
+
+            <!-- Painikkeet -->
+            <div class="filter-item filter-actions">
+              <button type="submit" class="btn btn-primary">Hae</button>
+              <a href="{% url 'spaces' %}" class="btn btn-secondary">Tyhjennä</a>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- Tilojen listaus -->
+      <div class="cards-container">
+
+        <!-- For loop tarkistus jokaista tilaa kohden -->
+        {% for tila in myspaces %}
+
+        <!-- Kortti alkaa tästä -->
+        <div class="mycard">
+
+          <!-- Kortin header -->
+          <div class="mycard-header">
+            <h1>
+              {% if tila.type == "office" %}
+                Toimisto
+              {% elif tila.type == "meeting_room" %}
+                Kokoushuone
+              {% elif tila.type == "conference_room" %}
+                Konferenssihuone
+              {% elif tila.type == "event_space" %}
+                Tapahtumatila
+              {% else %}
+                Ei määritelty
+              {% endif %}
+            </h1>
+            <h2>{{ tila.location }}</h2>
+          </div>
+
+          <!-- Kortin sisältö -->
+          <div class="mycard-body">
+
+            <!-- Tilan sijainti asetetaan muuttujan mukaiseksi -->
+            <p><strong>Sijainti:</strong> {{ tila.location }}</p>
+
+            <!-- Tilan tyyppi asetetaan If muuttujan mukaiseksi -->
+            <p><strong>Tyyppi:</strong>
+
+              <!-- If tarkastelu tilan tyyppiä varten -->
+              {% if tila.type == "office" %}
+                Toimisto
+              {% elif tila.type == "meeting_room" %}
+                Kokoushuone
+              {% elif tila.type == "conference_room" %}
+                Konferenssihuone
+              {% elif tila.type == "event_space" %}
+                Tapahtumatila
+              {% else %}
+                {{ tila.type }}
+              {% endif %}
+            </p>
+
+            <!-- Tilan julkisuus -->
+            <p><strong>Julkisuus:</strong>
+
+              <!-- If tarkastelu tilan julkisuutta varten -->
+              {% if tila.publicity == "public" %}
+                Julkinen
+              {% else %}
+                Yksityinen
+              {% endif %}
+            </p>
+
+            <!-- If tarkastelu tilan palvelu tyyppiä varten -->
+            <p><strong>Palvelu:</strong>
+              {% if tila.service_type == "rental" %}
+                Vuokra
+              {% else %}
+                Laina
+              {% endif %}
+            </p>
+
+            <!-- Tilan koko -->
+            <p><strong>Koko:</strong> {{ tila.size }} m²</p>
+
+            <!-- Tilan kapasiteetti -->
+            <p><strong>Kapasiteetti:</strong> {{ tila.capacity }} henkilöä</p>
+
+            <!-- Nappi jolla näytetään tilan tiedot -->
+            <div class="text-center mt-3">
+              <a href="{% url 'spaces_details' tila.slug %}" class="btn btn-outline-primary">Näytä tiedot & varaa</a>
+            </div>
+          </div>
+
+          <!-- Kortti loppuu tähän -->
         </div>
 
-        <!-- Kortin sisältö -->
-        <div class="mycard-body">
-          <p>Koko: {{ tila.size }} m²</p>
-          <p>Kapasiteetti: {{ tila.capacity }}</p>
-          <a href="{% url 'spaces_details' tila.slug %}" class="btn btn-outline-primary">Näytä tiedot</a>
+        <!-- Empty state kun ei ole tiloja -->
+        {% empty %}
+        
+        <div class="mycard">
+          <div class="mycard-header">
+            <h1>Ei tuloksia</h1>
+          </div>
+          <div class="mycard-body">
+            <p>Hakutuloksia ei löytynyt. Kokeile toisia hakuehtoja</p>
+            <a href="{% url 'spaces' %}" class="btn btn-primary">Näytä kaikki tilat</a>
+          </div>
         </div>
-
-        <!-- Kortti loppuu tähän -->
+        {% endfor %}
       </div>
-    {% endfor %}
-  </div>
+    </div>
+  </main>
+</div>
 {% endblock %}
