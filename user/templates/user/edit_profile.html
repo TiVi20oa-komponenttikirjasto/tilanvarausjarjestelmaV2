@@ -24,11 +24,13 @@
         </div>
         <div class="row mt-4">
             <h4>Vaihda salasana</h4>
+
             <!-- Salasanan vaihto (form) -->
             <form method="post">
                 <small class="text-muted">
                     {{ password_form.new_password1.help_text|striptags }} <br>
                 </small>
+                
                 <!-- Salasanan vaihto -->
                 {% csrf_token %}
                 {{ password_form.non_field_errors }}
