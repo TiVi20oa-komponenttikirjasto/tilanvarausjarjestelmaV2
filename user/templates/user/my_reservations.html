@@ -94,27 +94,27 @@
                             </thead>
                             <tbody>
                                 {% for reservation in past_reservations %}
-                                    <tr>
-                                        <td>
-                                            {% if reservation.space.type == "office" %}
-                                                Toimisto
-                                            {% elif reservation.space.type == "meeting_room" %}
-                                                Kokoushuone
-                                            {% elif reservation.space.type == "conference_room" %}
-                                                Konferenssihuone
-                                            {% elif reservation.space.type == "event_space" %}
-                                                Tapahtumatila
-                                            {% else %}
-                                                {{ reservation.space.type }}
-                                            {% endif %}
-                                        </td>
-                                        <td>{{ reservation.space.location }}</td>
-                                        <td>{{ reservation.start|date:"d.m.Y H:i" }}</td>
-                                        <td>{{ reservation.end|date:"d.m.Y H:i" }}</td>
-                                        <td>
-                                            <span class="badge bg-secondary">{{ reservation.title }}</span>
-                                        </td>
-                                    </tr>
+                                <tr>
+                                    <td>
+                                        {% if reservation.space.type == "office" %}
+                                            Toimisto
+                                        {% elif reservation.space.type == "meeting_room" %}
+                                            Kokoushuone
+                                        {% elif reservation.space.type == "conference_room" %}
+                                            Konferenssihuone
+                                        {% elif reservation.space.type == "event_space" %}
+                                            Tapahtumatila
+                                        {% else %}
+                                            {{ reservation.space.type }}
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ reservation.space.location }}</td>
+                                    <td>{{ reservation.start|date:"d.m.Y H:i" }}</td>
+                                    <td>{{ reservation.end|date:"d.m.Y H:i" }}</td>
+                                    <td>
+                                        <span class="badge bg-secondary">{{ reservation.title }}</span>
+                                    </td>
+                                </tr>
                                 {% endfor %}
                             </tbody>
                         </table>
