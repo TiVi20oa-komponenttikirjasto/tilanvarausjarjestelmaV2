@@ -159,6 +159,7 @@
 
           <!-- Kortin header -->
           <div class="mycard-header">
+            <div class="space-id">ID-{{ tila.idNumber }}</div>
             <h1>
               {% if tila.type == "office" %}
                 Toimisto
@@ -172,20 +173,33 @@
                 Ei määritelty
               {% endif %}
             </h1>
-            <h2>{{ tila.location }}</h2>
+            <!-- Prefer showing detailed address; fall back to location if empty -->
+            <h2>
+              {% if tila.address %}
+                {{ tila.address }}{% if tila.municipality %}, {{ tila.municipality }}{% endif %}
+              {% else %}
+                {{ tila.location }}{% if tila.municipality %}, {{ tila.municipality }}{% endif %}
+              {% endif %}
+            </h2>
           </div>
 
           <!-- Kortin sisältö -->
           <div class="mycard-body">
 
-            <!-- Tilan sijainti asetetaan muuttujan mukaiseksi -->
-            <p><strong>Sijainti:</strong> {{ tila.location }}</p>
+            <!-- Tilan osoite ja paikkakunta -->
+            <!-- <p><strong>Osoite:</strong>
+              {% if tila.address %}
+                {{ tila.address }}{% if tila.municipality %}, {{ tila.municipality }}{% endif %}
+              {% else %}
+                {{ tila.location }}{% if tila.municipality %}, {{ tila.municipality }}{% endif %}
+              {% endif %}
+            </p> -->
 
             <!-- Tilan tyyppi asetetaan If muuttujan mukaiseksi -->
-            <p><strong>Tyyppi:</strong>
+            <!-- <p><strong>Tyyppi:</strong> -->
 
               <!-- If tarkastelu tilan tyyppiä varten -->
-              {% if tila.type == "office" %}
+              <!-- {% if tila.type == "office" %}
                 Toimisto
               {% elif tila.type == "meeting_room" %}
                 Kokoushuone
@@ -196,18 +210,18 @@
               {% else %}
                 {{ tila.type }}
               {% endif %}
-            </p>
+            </p> -->
 
             <!-- Tilan julkisuus -->
-            <p><strong>Julkisuus:</strong>
+            <!-- <p><strong>Julkisuus:</strong> -->
 
               <!-- If tarkastelu tilan julkisuutta varten -->
-              {% if tila.publicity == "public" %}
+              <!-- {% if tila.publicity == "public" %}
                 Julkinen
               {% else %}
                 Yksityinen
               {% endif %}
-            </p>
+            </p> -->
 
             <!-- If tarkastelu tilan palvelu tyyppiä varten -->
             <p><strong>Palvelu:</strong>
