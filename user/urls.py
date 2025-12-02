@@ -31,6 +31,12 @@ urlpatterns = [
     # Tilan luonti
     path('space/create/', views.create_space, name='create_space'),
 
+    # Tilan muokkaus
+    path('space/edit/<int:space_id>', views.edit_space, name='edit_space'),
+
+    # Tilan poisto
+    path('space/delete/<int:space_id>', views.delete_space, name='delete_space'),
+
     # Omat varaukset
     path('my_reservations/', views.my_reservations, name='my_reservations'),
     path('delete-reservation/<int:reservation_id>', views.delete_reservation, name='delete_reservation'),
