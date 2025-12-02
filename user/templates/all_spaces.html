@@ -212,31 +212,20 @@
               {% endif %}
             </p> -->
 
-            <!-- Tilan julkisuus -->
-            <!-- <p><strong>Julkisuus:</strong> -->
+            <!-- Tilan tiedot rivissä -->
+            <div class="space-attrs">
+              <p class="space-attr"><strong>Palvelu:</strong>
+                {% if tila.service_type == "rental" %}
+                  Vuokra
+                {% else %}
+                  Laina
+                {% endif %}
+              </p>
 
-              <!-- If tarkastelu tilan julkisuutta varten -->
-              <!-- {% if tila.publicity == "public" %}
-                Julkinen
-              {% else %}
-                Yksityinen
-              {% endif %}
-            </p> -->
+              <p class="space-attr"><strong>Koko:</strong> {{ tila.size }} m²</p>
 
-            <!-- If tarkastelu tilan palvelu tyyppiä varten -->
-            <p><strong>Palvelu:</strong>
-              {% if tila.service_type == "rental" %}
-                Vuokra
-              {% else %}
-                Laina
-              {% endif %}
-            </p>
-
-            <!-- Tilan koko -->
-            <p><strong>Koko:</strong> {{ tila.size }} m²</p>
-
-            <!-- Tilan kapasiteetti -->
-            <p><strong>Kapasiteetti:</strong> {{ tila.capacity }} henkilöä</p>
+              <p class="space-attr"><strong>Kapasiteetti:</strong> {{ tila.capacity }} henkilöä</p>
+            </div>
 
             <!-- Nappi jolla näytetään tilan tiedot -->
             <div class="text-center mt-3">
