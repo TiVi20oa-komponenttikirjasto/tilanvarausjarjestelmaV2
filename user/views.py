@@ -189,6 +189,54 @@ def create_space(request):
         form = SpaceForm()
     return render(request, 'user/create_space.html', {'form': form})
 
+# Tilan muokkaus tilan ID:n perusteella
+@login_required
+def edit_space(request, space_id):
+    space = get_object_or_404(Space, idNumber=space_id)
+
+    if space.owner != request.user:
+        messages.error(request, 'Sinulla ei ole oikeutta muokata tätä tilaa.')
+        return redirect('my_spaces')
+    
+    if request.method == 'POST':
+        form = SpaceForm(request.POST, instance=space)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Tilan tiedot päivitetty onnistuneesti.')
+            return redirect('my_spaces')
+    else:
+        form = SpaceForm(instance=space)
+        return render(request, 'user/edit_space.html', {
+            'form': form,
+            'space': space
+            })
+
+# Tilan poisto tilan ID:n perusteella
+@login_required
+def delete_space(request, space_id):
+    space = get_object_or_404(Space, idNumber=space_id)
+
+    # Tilan omistajan tarkistus
+    if space.owner != request.user:
+        messages.error(request, 'Sinulla ei ole oikeutta poistaa tätä tilaa.')
+        return redirect('my_spaces')
+    
+    # Poistettavan tilan varauksien tarkistus
+    has_reservations = Event.objects.filter(space=space).exists()
+
+    # Jos metodi POST onnistuu
+    if request.method == 'POST':
+
+        # Tilan poisto
+        space.delete()
+        messages.success(request, f'Tila ID: {space_id} poistettu onnistuneesti.')
+        return redirect('my_spaces')
+
+    # Poistetaan varaukset tilan poiston kanssa
+    return render(request, 'user/confirm_delete_space.html', {
+        'space': space,
+        'has_reservations': has_reservations
+    })
 
 # Käyttäjien listausnäkymä
 def users_list(request):
