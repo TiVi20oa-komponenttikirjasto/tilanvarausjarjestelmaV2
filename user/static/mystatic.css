@@ -90,6 +90,36 @@ body {
   padding: 20px;
   overflow: hidden;
 }
+  .mycard-right {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Align card details (header + body) to the right edge of the right column */
+  .mycard-right .mycard-header {
+    align-items: flex-end; /* push header contents to the right */
+    text-align: right;
+  }
+
+  .mycard-right .mycard-header h1,
+  .mycard-right .mycard-header h2 {
+    text-align: right;
+  }
+
+  .mycard-right .mycard-body {
+    text-align: right; /* right-align body text */
+  }
+
+  /* Make attribute row align to the right */
+  .space-attrs {
+    justify-content: flex-end;
+  }
+
+  /* Ensure buttons inside card body align to the right */
+  .mycard-body .text-center {
+    text-align: right;
+  }
 
 .mycard-header {
   background-image: linear-gradient(to bottom, #375BDC, #4D70EF); 
@@ -124,6 +154,31 @@ body {
   color: #585d74;
   font-size: 16px;
   margin: 8px 0;
+}
+
+/* Arrange space attributes in a horizontal row with gaps */
+.space-attrs {
+  display: flex;
+  flex-direction: row;
+  gap: 20px; /* space between items */
+  align-items: center;
+  flex-wrap: wrap; /* allow wrapping on small screens */
+  margin: 6px 0;
+}
+
+.space-attr {
+  margin: 0; /* reset default p margin */
+  padding: 6px 10px;
+  background: rgba(55, 91, 220, 0.06);
+  border-radius: 6px;
+  color: #2e3550;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+@media (max-width: 700px) {
+  .space-attrs { gap: 12px; }
+  .mycard-image img { height: 160px; }
 }
 
 .mycard h1 {
