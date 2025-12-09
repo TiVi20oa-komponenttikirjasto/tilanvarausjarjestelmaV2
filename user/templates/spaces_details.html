@@ -35,16 +35,16 @@ Tämä sivu näyttää yksittäisen tilan tiedot ja varauskalenterin.
       </div>
       <div class="mycard-body">
         <p>ID: {{ myspaces.idNumber }}</p>
-        <p>Tilan sijainti: {{ myspaces.location }}</p>
-        <p>Tilan tyyppi: 
-          {% if myspaces.type == "office" %}
-            Toimisto
-          {% elif myspaces.type == "meeting_room" %}
-            Kokoushuone
-          {% elif myspaces.type == "conference_room" %}
-            Konferenssihuone
-          {% elif myspaces.type == "event_space" %}
-            Tapahtumatila
+        <p>Maakunta: {{ myspaces.location }}</p>
+        {% if myspaces.address %}
+        <p>Osoite: {{ myspaces.address }}{% if myspaces.municipality %}, {{ myspaces.municipality }}{% endif %}</p>
+        {% endif %}
+        <p>
+          Tilan julkisuus: 
+          {% if myspaces.publicity == "private" %}
+            Yksityinen
+          {% elif myspaces.publicity == "public" %}
+            Julkinen
           {% else %}
             Ei määritelty
           {% endif %}
@@ -59,12 +59,15 @@ Tämä sivu näyttää yksittäisen tilan tiedot ja varauskalenterin.
             Ei määritelty
           {% endif %}
         </p>
-        <p>
-          Tilan julkisuus: 
-          {% if myspaces.publicity == "private" %}
-            Yksityinen
-          {% elif myspaces.publicity == "public" %}
-            Julkinen
+        <p>Tilan tyyppi: 
+          {% if myspaces.type == "office" %}
+            Toimisto
+          {% elif myspaces.type == "meeting_room" %}
+            Kokoushuone
+          {% elif myspaces.type == "conference_room" %}
+            Konferenssihuone
+          {% elif myspaces.type == "event_space" %}
+            Tapahtumatila
           {% else %}
             Ei määritelty
           {% endif %}
