@@ -1,0 +1,147 @@
+{% extends "master.html" %}
+
+{% block title %}
+    Muokkaa tilaa
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Muokkaa tilaa</h4>
+        </div>
+
+        <!-- Tilan kortti -->
+        <div class="card-body">
+            <div class="mycard mb-4">
+
+                <!-- Kortin header (Sininen kenttä) -->
+                <div class="mycard-header">
+
+                    <!-- Tilan tyypin IF tarkastus -->
+                    <h1>
+                        {% if space.type == "office" %}
+                            Toimisto
+                        {% elif space.type == "meeting_room" %}
+                            Kokoushuone
+                        {% elif space.type == "conference_room" %}
+                            Konferenssihuone
+                        {% elif space.type == "event_space" %}
+                            Tapahtumatila
+                        {% else %}
+                            Ei määritelty
+                        {% endif %}
+                    </h1>
+
+                    <!-- Tilan sijainti -->
+                    <h2>{{ space.location }}</h2>
+                </div>
+
+                <!-- Tila kortin sisältö -->
+                <div class="mycard-body">
+
+                    <!-- Tilan ID numero -->
+                    <p><strong>Tila ID:</strong> {{ space.idNumber }}</p>
+
+                    <!-- Tilan omistaja -->
+                    <p><strong>Omistaja:</strong> {{ space.owner.username }}</p>
+                </div>
+            </div>
+            
+            <!-- Form jolla muokataan tilan tietoja -->
+            <form method="post">
+
+                <!-- Uniikki salattu avain -->
+                {% csrf_token %}
+
+                <!-- Virheen tarkistus -->
+                {% if form.errors %}
+                <div class="alert alert-danger">
+                    <strong>Virhe:</strong> Korjaa alla olevat virheet.
+                </div>
+                {% endif %}
+
+                <!-- Sijainnin muokkaus -->
+                <div class="mb-3">
+                    <label for="id_location" class="form-label">Sijainti</label>
+                    {{ form.location }}
+                    {% if form.location.errors %}
+                    <div class="text-danger">{{ form.location.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Tilan tyypin muokkaus -->
+                <div class="mb-3">
+                    <label for="id_type" class="form-label">Tilan tyyppi</label>
+                    {{ form.type }}
+                    {% if form.type.errors %}
+                    <div class="text-danger">{{ form.type.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Tilan julkisuuden muokkaus -->
+                <div class="mb-3">
+                    <label for="id_publicity" class="form-label">Julkisuus</label>
+                    {{ form.publicity }}
+                    {% if form.publicity.errors %}
+                    <div class="text-danger">{{ form.publicity.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Tilan palvelu tyypin muokkaus -->
+                <div class="mb-3">
+                    <label for="id_service_type" class="form-label">Palvelutyyppi</label>
+                    {{ form.service_type }}
+                    {% if form.service_type.errors %}
+                    <div class="text-danger">{{ form.service_type.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Tilan koon muokkaus -->
+                <div class="mb-3">
+                    <label for="id_size" class="form-label">Koko (m²)</label>
+                    {{ form.size }}
+                    {% if form.size.errors %}
+                    <div class="text-danger">{{ form.size.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Tilan kapasiteetin muokkaus -->
+                <div class="mb-3">
+                    <label for="id_capacity" class="form-label">Kapasiteetti (henkilöä)</label>
+                    {{ form.capacity }}
+                    {% if form.capacity.errors %}
+                    <div class="text-danger">{{ form.capacity.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Tallenna ja peruuta painikkeet -->
+                <div class="mt-4">
+                    <!-- Tallennus painike (submit form) -->
+                    <button type="submit" class="btn btn-primary">Tallenna muutokset</button>
+                    <!-- Peruuta painike (lataa sivun uudeleen) -->
+                    <a href="{% url 'my_spaces' %}" class="btn btn-secondary">Peruuta</a>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Tyylittely joka tarkvii tehddä css tiedostossa */
+    .form-control, .form-select {
+        display: block;
+        width: 100%;
+        padding: 0.375rem 0.75rem;
+        font-size: 1rem;
+        line-height: 1.5;
+        color: #212529;
+        background-color: #fff;
+        background-clip: padding-box;
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+</style>
+{% endblock %}
