@@ -35,7 +35,10 @@ Tämä sivu näyttää yksittäisen tilan tiedot ja varauskalenterin.
       </div>
       <div class="mycard-body">
         <p>ID: {{ myspaces.idNumber }}</p>
-        <p>Tilan sijainti: {{ myspaces.location }}</p>
+        <p>Maakunta: {{ myspaces.location }}</p>
+        {% if myspaces.address %}
+        <p>Osoite: {{ myspaces.address }}{% if myspaces.municipality %}, {{ myspaces.municipality }}{% endif %}</p>
+        {% endif %}
         <p>Tilan tyyppi: 
           {% if myspaces.type == "office" %}
             Toimisto
