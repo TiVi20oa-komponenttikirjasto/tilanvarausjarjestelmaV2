@@ -140,8 +140,11 @@
                         
                         <!-- Toiminnot -->
                         <div class="text-center mt-3">
-                            <a href="{% url 'spaces_details' tila.slug %}" class="btn btn-outline-primary">Näytä tiedot</a>
-                            <!-- Voit lisätä muokkaus- ja poistonappuloita tähän tulevaisuudessa -->
+                            <div class="btn-group" role="group">
+                                <a href="{% url 'spaces_details' tila.slug %}" class="btn btn-outline-primary">Näytä tiedot</a>
+                                <a href="{% url 'edit_space' tila.idNumber %}" class="btn btn-outline-secondary">Muokkaa</a>
+                                <a href="{% url 'delete_space' tila.idNumber %}" class="btn btn-outline-danger">Poista</a>
+                            </div>
                         </div>
                     </div>
                 </div>
