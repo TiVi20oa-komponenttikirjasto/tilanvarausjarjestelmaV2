@@ -38,4 +38,4 @@ class ProfileUpdateForm(forms.ModelForm):
 class SpaceForm(forms.ModelForm):
     class Meta:
         model = Space
-        exclude = ['owner', 'slug']
+        fields = ['location', 'municipality', 'address', 'publicity', 'service_type', 'type', 'size', 'capacity', 'owner',]
