@@ -18,6 +18,7 @@ Tämä sivu näyttää yksittäisen tilan tiedot ja varauskalenterin.
     <!-- Kortti alkaa tästä -->
     <div class="mycard">
       <div class="mycard-header">
+        <div class="space-id">ID:{{ myspaces.idNumber }}</div>
         <h1>
           {% if myspaces.type == "office" %}
             Toimisto
@@ -34,7 +35,6 @@ Tämä sivu näyttää yksittäisen tilan tiedot ja varauskalenterin.
         </h1>
       </div>
       <div class="mycard-body">
-        <p>ID: {{ myspaces.idNumber }}</p>
         <p>Maakunta: {{ myspaces.location }}</p>
         {% if myspaces.address %}
         <p>Osoite: {{ myspaces.address }}{% if myspaces.municipality %}, {{ myspaces.municipality }}{% endif %}</p>
@@ -91,9 +91,9 @@ Tämä sivu näyttää yksittäisen tilan tiedot ja varauskalenterin.
           /* Ensure day cell text remains readable */
           .varattu-paiva, .own-varattu-paiva, .pending-varaus { color: inherit !important; }
         </style>
-  <div style="display:flex;justify-content:flex-end;gap:8px;align-self:flex-end;">
+  <!-- <div style="display:flex;justify-content:flex-end;gap:8px;align-self:flex-end;">
         <button id="btnConfirmBooking" style="background:#007bff;color:white;padding:6px 10px;border-radius:4px;">Vahvista varaus</button>
-  <button id="btnClearSelection">Tyhjennä valinnat</button>
+  <button id="btnClearSelection">Tyhjennä valinnat</button> -->
       </div>
       <!-- Varaajan tiedot: näytetään lomake vain jos käyttäjä ei ole kirjautunut -->
       {% if user.is_authenticated %}

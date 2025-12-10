@@ -321,7 +321,9 @@ def spaces(request):
         capacity_int=Cast('capacity', IntegerField())
     )
 
+    q_id = request.GET.get('id', '').strip()
     q_location = request.GET.get('location', '').strip()
+    q_municipality = request.GET.get('municipality', '').strip()
     q_type = request.GET.get('type', '').strip()
     q_publicity = request.GET.get('publicity', '').strip()
     q_service = request.GET.get('service_type', '').strip()
@@ -330,8 +332,15 @@ def spaces(request):
     q_min_capacity = request.GET.get('min_capacity', '').strip()
     q_max_capacity = request.GET.get('max_capacity', '').strip()
 
+    if q_id:
+        try:
+            qs = qs.filter(idNumber=int(q_id))
+        except ValueError:
+            pass
     if q_location:
         qs = qs.filter(location__icontains=q_location)
+    if q_municipality:
+        qs = qs.filter(municipality__icontains=q_municipality)
     if q_type:
         qs = qs.filter(type=q_type)
     if q_publicity:
