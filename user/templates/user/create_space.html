@@ -1,14 +1,35 @@
+<!-- Tilan luonti-sivu -->
+
 {% extends 'master.html' %}
+
+{% block title %}
+    Tilan luonti
+{% endblock %}
+
 {% block content %}
 
-<h2>Lisää tila</h2>
-<form method="POST">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="btn btn-primary">Lisää tila</button>
+<!-- Pääsisällön kontti -->
+<div class="container">
+    <h2>Lisää tila</h2>
+
+    <!--  -->
+    <form method="POST">
+
+        <!-- CSRF tokenin luonti -->
+        {% csrf_token %}
+
+        <!-- Luodaan form paragraaphina (kappaleena) -->
+        {{ form.as_p }}
+
+        <!-- Submit nappi jokaa lähettää lomakkeen eteenpäin -->
+        <button type="submit" class="btn btn-primary">Lisää tila</button>
+
+        <!-- Linkki joka näyttää napilta ja lataa sivun uudelleen -->
         <a href="{% url 'profile' %}">
             <button type="button" class="btn btn-secondary">Peruuta</button>
         </a>
-</form>
+
+    </form>
+</div>
 
 {% endblock %}
