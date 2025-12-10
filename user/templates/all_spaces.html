@@ -83,10 +83,22 @@
         <form method="get" class="mb-0">
           <div class="filter-grid">
 
-            <!-- Tilan sijainti -->
+            <!-- Tilan ID -->
             <div class="filter-item">
-              <label >Sijainti</label>
-              <input type="text" name="location" placeholder="Sijainti" value="{{ request.GET.location|default:'' }}" class="form-control">
+              <label>ID</label>
+              <input type="number" name="id" placeholder="Tilan-ID" value="{{ request.GET.id|default:'' }}" class="form-control">
+            </div>
+
+            <!-- Tilan Maakunta -->
+            <div class="filter-item">
+              <label>Maakunta</label>
+              <input type="text" name="location" placeholder="Maakunta" value="{{ request.GET.location|default:'' }}" class="form-control">
+            </div>
+
+            <!-- Tilan Kunta -->
+            <div class="filter-item">
+              <label>Kunta</label>
+              <input type="text" name="municipality" placeholder="Kunta" value="{{ request.GET.municipality|default:'' }}" class="form-control">
             </div>
 
             <!-- Tilan tyyppi -->
