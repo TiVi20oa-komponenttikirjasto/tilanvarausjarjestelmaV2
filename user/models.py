@@ -97,17 +97,13 @@ class Space(models.Model):
     slug = models.SlugField(default="", null=False)
 
     def save(self, *args, **kwargs):
-        # Ensure the instance is saved so a primary key exists for slug generation.
-        created = self.pk is None
-        if created:
-            super().save(*args, **kwargs)
 
-        # Generate slug if missing (after instance has a primary key)
-        if not self.slug:
-            base_slug = slugify(f"{self.type}-{self.location}-{self.idNumber}")
-            self.slug = base_slug
-
-        # Always save to persist any changes (address, municipality, etc.)
+        # Save first to ensure idNumber is assigned
+        super().save(*args, **kwargs)
+        
+        # Generate slug based on idNumber if not already set
+        if not self.slug or self.slug == "":
+            self.slug = f"space-{self.idNumber}"
         super().save(*args, **kwargs)
 
     def __str__(self):

@@ -19,13 +19,14 @@ class SpaceAdmin(admin.ModelAdmin):
       prepopulated_fields (dict): Fields to auto-populate based on other fields.
   """
 
-  list_display = ("idNumber", "owner", "location", "address", "municipality", "publicity", "service_type", "type", "size", "capacity",)
-  prepopulated_fields = {"slug": ("type", "location")}
+  list_display = ("idNumber", "type", "location", "municipality", "address", "publicity", "service_type", "size", "capacity", "owner")
+  exclude = ('idNumber', 'slug')
   search_fields = ("location", "address", "municipality", "owner__username")
   list_filter = ("publicity", "service_type", "type")
+  
   # Show address & municipality in the edit form and group commonly edited fields
   fieldsets = (
-      (None, { 'fields': ('owner', 'type', 'location', 'address', 'municipality', 'slug') }),
+      (None, { 'fields': ('owner', 'type', 'location', 'address', 'municipality') }),
       ('Details', { 'fields': ('publicity', 'service_type', 'size', 'capacity') }),
   )
 
