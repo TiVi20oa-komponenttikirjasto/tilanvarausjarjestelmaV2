@@ -83,6 +83,12 @@
         <form method="get" class="mb-0">
           <div class="filter-grid">
 
+            <!-- Tilan ID -->
+            <div class="filter-item">
+              <label>ID</label>
+              <input type="number" name="id" placeholder="ID" value="{{ request.GET.id|default:'' }}" class="form-control">
+            </div>
+
             <!-- Tilan sijainti -->
             <div class="filter-item">
               <label >Sijainti</label>
