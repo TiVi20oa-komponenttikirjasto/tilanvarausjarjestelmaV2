@@ -201,7 +201,9 @@ def edit_space(request, space_id):
     if request.method == 'POST':
         form = SpaceForm(request.POST, instance=space)
         if form.is_valid():
-            form.save()
+            space = form.save(commit=False)
+            space.owner = request.user
+            space.save()
             messages.success(request, 'Tilan tiedot päivitetty onnistuneesti.')
             return redirect('my_spaces')
     else:
