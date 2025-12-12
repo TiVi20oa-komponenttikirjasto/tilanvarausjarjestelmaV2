@@ -91,10 +91,10 @@ Tämä sivu näyttää yksittäisen tilan tiedot ja varauskalenterin.
           /* Ensure day cell text remains readable */
           .varattu-paiva, .own-varattu-paiva, .pending-varaus { color: inherit !important; }
         </style>
-  <!-- <div style="display:flex;justify-content:flex-end;gap:8px;align-self:flex-end;">
-        <button id="btnConfirmBooking" style="background:#007bff;color:white;padding:6px 10px;border-radius:4px;">Vahvista varaus</button>
-  <button id="btnClearSelection">Tyhjennä valinnat</button> -->
-      </div>
+        <div style="display:flex;justify-content:flex-end;gap:8px;align-self:flex-end;margin-top:12px;margin-bottom:12px;">
+          <button id="btnConfirmBooking" style="background:#007bff;color:white;padding:6px 10px;border-radius:4px;">Vahvista varaus</button>
+          <button id="btnClearSelection" style="background:#6c757d;color:white;padding:6px 10px;border-radius:4px;">Tyhjennä valinnat</button>
+        </div>
       <!-- Varaajan tiedot: näytetään lomake vain jos käyttäjä ei ole kirjautunut -->
       {% if user.is_authenticated %}
       <div id="current-user-info" style="max-width:520px;margin:16px auto;">
@@ -128,11 +128,12 @@ Tämä sivu näyttää yksittäisen tilan tiedot ja varauskalenterin.
     data-email="{{ user.email|default:''|escape }}"
     data-app-id="{% if user.is_authenticated and user|default_if_none:'' and user.app_profile %}{{ user.app_profile.idNumber }}{% else %}{% endif %}"></div>
       <!-- Toiminnot myös kalenterin alle (käyttäjä voi vahvistaa tai tyhjentää valinnan tästäkin) -->
-  <div style="margin-top:12px;display:flex;justify-content:flex-end;gap:8px;align-self:flex-end;">
+
+    <div style="margin-top:12px;display:flex;justify-content:flex-end;gap:8px;align-self:flex-end;">
         <button id="btnConfirmBookingBottom" style="background:#007bff;color:white;padding:6px 10px;border-radius:4px;">Vahvista varaus</button>
-  <button id="btnClearSelectionBottom">Tyhjennä valinnat</button>
-      </div>
+    <button id="btnClearSelectionBottom">Tyhjennä valinnat</button>
     </div>
+  </div>
 
 <!-- Tyylit ovat FullCalendar-laajennusten injektoimia, erillistä CSS-tiedostoa ei tarvita -->
 <script>

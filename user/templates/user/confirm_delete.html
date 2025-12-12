@@ -1,3 +1,5 @@
+<!-- Varauksien poisto vahvistus-sivu -->
+
 {% extends "master.html" %}
 
 {% block title %}
@@ -5,15 +7,27 @@
 {% endblock %}
 
 {% block content %}
+
+    <!-- Sisällön kontti -->
     <div class="container mt-4">
+
+        <!-- Kortti alkaa tästä -->
         <div class="card">
+
+            <!-- Kortin header -->
             <div class="card-header bg-warning">
                 <h4 class="mb-0">Vahvista varauksen peruutus</h4>
             </div>
+
+            <!-- Kortin body -->
             <div class="card-body">
                 <p>Haluatko varmasti peruuttaa seuraavan varauksen</p>
                 <ul>
+
+                    <!-- Listaus valitusta varauksesta joka halutaan poistaa -->
                     <li><strong>Tila:</strong>
+
+                        <!-- If tarkistus valitun varaukseen liityvän tilan tyyppiä varten -->
                         {% if reservation.space.type == "office" %}
                             Toimisto
                         {% elif reservation.space.type == "meeting_room" %}
@@ -26,16 +40,32 @@
                             {{ reservation.space.type }}
                         {% endif %}
                     </li>
+
+                    <!-- Varaukseen liittyvän tilan sijainti -->
                     <li><strong>Sijainti:</strong> {{ reservation.space.location }}</li>
+
+                    <!-- Varauksen alku päivämäärä -->
                     <li><strong>Alkaa:</strong> {{ reservation.start|date:"d.m.Y H:i" }}</li>
+
+                    <!-- Varauksen loppu päivämäärä -->
                     <li><strong>Loppuu:</strong> {{ reservation.end|date:"d.m.Y H:i" }}</li>
                 </ul>
+
+                <!-- Post form jolla lähetetään tieto eteenpäin -->
                 <form method="post">
+
+                    <!-- crfs tokenin lisäys -->
                     {% csrf_token %}
+
+                    <!-- Submit nappi jokaa lähettää lomakkeen eteenpäin -->
                     <button type="submit" class="btn btn-danger">Kyllä, peruuta varaus</button>
+
+                    <!-- Linkki joka näyttää napilta ja lataa sivun uudelleen -->
                     <a href="{% url 'my_reservations' %}" class="btn btn-secondary">Peruuta</a>
                 </form>
+
             </div>
         </div>
     </div>
+
 {% endblock %}
