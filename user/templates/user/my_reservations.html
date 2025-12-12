@@ -1,3 +1,5 @@
+<!-- Tämä sivu näyttää kirjautuneen käyttäjän varaus sivun -->
+
 {% extends "master.html" %}
 
 {% block title %}
@@ -5,9 +7,12 @@
 {% endblock %}
 
 {% block content %}
+
+    <!-- Pää sisältä -->
     <div class="container mt-4">
         <h1>Omat varaukset</h1>
 
+        <!-- If tarkistus virhe ilmoituksille -->
         {% if messages %}
             {% for message in messages %}
                 <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags}}{% endif %}">
@@ -17,14 +22,25 @@
         {% endif %}
 
         <!-- Nykyiset varaukset -->
-         <div class="card mb-4">
+        <div class="card mb-4">
+
+            <!-- Kortin header ja sen sisältö -->
             <div class="card-header bg-primary text-white">
                 <h4 class="mb-0">Nykyiset varaukset</h4>
             </div>
+
+            <!-- Kortin body ja sen sisältö -->
             <div class="card-body">
+
+                <!-- If tarkistus jo olemassa olevia varauksia varten -->
                 {% if current_reservations %}
+
                 <div class="table-responsive">
+
+                    <!-- Siäsältö taulutettuna -->
                     <table class="table table-striped">
+
+                        <!-- Header sisältä joka haetaan taulusta -->
                         <thead>
                             <tr>
                                 <th>Tila</th>
@@ -35,10 +51,16 @@
                                 <th>Toiminnot</th>
                             </tr>
                         </thead>
+
+                        <!-- Body sisältö joka haetaan taulusta -->
                         <tbody>
+
+                            <!-- For loop jokaista varuasta kohden -->
                             {% for reservation in current_reservations %}
+
                                 <tr>
                                     <td>
+                                        <!-- If tarkistus tilan tyypin kielen kääntämistä varten ja sen näyttäminen -->
                                         {% if reservation.space.type == "office" %}
                                             Toimisto
                                         {% elif reservation.space.type == "meeting_room" %}
@@ -51,38 +73,64 @@
                                             {{ reservation.space.type }}
                                         {% endif %}
                                     </td>
+
+                                    <!-- Tilan sijainti tiedon näyttäminen -->
                                     <td>{{ reservation.space.location }}</td>
+
+                                    <!-- Varauksen aloitus aika ja sen näyttäminen -->
                                     <td>{{ reservation.start|date:"d.m.Y H:i" }}</td>
+
+                                    <!-- Varauksen loppumis aika ja sen näyttäminen -->
                                     <td>{{ reservation.end|date:"d.m.Y H:i" }}</td>
+
+                                    <!-- Varauksen status Vapaa/Varattu -->
                                     <td>
                                         <span class="badge bg-success">{{ reservation.title }}</span>
                                     </td>
+
+                                    <!-- Varauksen peruutus -->
                                     <td>
+                                        <!-- Post metodi joka lähettää peruutus pyynnön eteenpäin -->
                                         <form method="post" action="{% url 'delete_reservation' reservation.id %}" style="display: inline;">
                                             {% csrf_token %}
                                             <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Haluatko varmasti peruuttaa varauksen')">Peruuta</button>
                                         </form>
                                     </td>
                                 </tr>
+
+                                <!-- For loopin lopetus -->
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Jos ei varauksia näytetään tämä viesti -->
                 {% else %}
                     <p class="text-muted">Sinulla ei ole nykyisiä varauksia.</p>
                 {% endif %}
             </div>
-         </div>
+        </div>
 
-         <!-- Menneet varaukset -->
+        <!-- Menneet varaukset -->
         <div class="card">
+
+            <!-- Menneiden varauksien header -->
             <div class="card-header bg-secondary text-white">
                 <h4 class="mb-0">Menneet varaukset</h4>
             </div>
+
+            <!-- Menneiden varauksien body -->
             <div class="card-body">
+
+                <!-- If tarkistus menneiden varaksten varten -->
                 {% if past_reservations %}
+
                     <div class="table-responsive">
+
+                        <!-- Menneiden varauksien tiedot taulutettuna -->
                         <table class="table table-striped">
+
+                            <!-- Headin sisältö joka haetaan taulusta -->
                             <thead>
                                 <tr>
                                     <th>Tila</th>
@@ -92,9 +140,16 @@
                                     <th>Tila</th>
                                 </tr>
                             </thead>
+
+                            <!-- Bodyn sisältö joka haetaan taulusta -->
                             <tbody>
+
+                                <!-- For loop jokaista mennyttä varausta kohden -->
                                 {% for reservation in past_reservations %}
+
                                 <tr>
+
+                                    <!-- If tarkistus jo mennen varatun tilan tyypin kielen kääntämistä varten ja sen näyttäminen -->
                                     <td>
                                         {% if reservation.space.type == "office" %}
                                             Toimisto
@@ -108,21 +163,33 @@
                                             {{ reservation.space.type }}
                                         {% endif %}
                                     </td>
+
+                                    <!-- Jo menneen varauksen tilan sijainnin näyttäminen -->
                                     <td>{{ reservation.space.location }}</td>
+
+                                    <!-- Jo menneen varauksen aloitus aika -->
                                     <td>{{ reservation.start|date:"d.m.Y H:i" }}</td>
+
+                                    <!-- Jo menneen varauksen loppumis aika -->
                                     <td>{{ reservation.end|date:"d.m.Y H:i" }}</td>
+
+                                    <!-- Jo menneen varauksen status Vapaa/Varattu -->
                                     <td>
                                         <span class="badge bg-secondary">{{ reservation.title }}</span>
                                     </td>
+
                                 </tr>
                                 {% endfor %}
                             </tbody>
                         </table>
                     </div>
+
+                <!-- Jos ei ole varauksia näytetään tämä sisältö -->
                 {% else %}
                     <p class="text-muted">Sinulla ei ole menneitä varauksia</p>
                 {% endif %}
             </div>
         </div>
     </div>
+    
 {% endblock %}
