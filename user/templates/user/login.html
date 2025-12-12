@@ -1,3 +1,5 @@
+<!-- Tämä sivu näyttää kirjautumis sivun -->
+
 {% extends "master.html" %}
 
 {% block title %}
@@ -5,23 +7,42 @@
 {% endblock %}
 
 {% block content %}
-  <div style="text-align: center;">
+
+<!-- Pää sisallön kontti -->
+  <div class="container" style="text-align: center;">
     <h1>Kirjaudu</h1>
+
+    <!-- If tarkistus virhevistejä varten -->
     {% if form.errors %}
       <p style="color:red">Väärä käyttäjätunnus tai salasana.</p>
     {% endif %}
+
+    <!-- Post form joka lähettää kirjautumis tiedot eteenpäin -->
     <form method="post" action="{% url 'login' %}">
+
+      <!-- CSRF token aktivointi -->
       {% csrf_token %}
+
+      <!-- Käyttäjä tunnus kenttä -->
       <p><label>Käyttäjätunnus: <br><input type="text" name="username" required></label></p>
+
+      <!-- salasana kenttä -->
       <p><label>Salasana: <br><input type="password" name="password" required></label></p>
+
+      <!-- Kirjaudu nappi -->
       <button class="btn btn-primary">Kirjaudu</button>
     </form>
+
+    <!-- Line break -->
     <br>
+
+    <!-- Nappi joka vie rekisteröinti sivulle -->
     <p>
       Eikö ole käyttäjää? 
       <a href="{% url 'register' %}"><br>
         <button class="btn btn-primary">Rekisteröidy</button>
       </a>
     </p>
+    
   </div>
 {% endblock %}

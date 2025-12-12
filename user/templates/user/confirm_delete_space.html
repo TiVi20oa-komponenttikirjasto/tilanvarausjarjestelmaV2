@@ -1,4 +1,5 @@
-<!-- user/confirm_delete_space.html -->
+<!-- Tilan poiston vahvitus-sivu -->
+
 {% extends "master.html" %}
 
 {% block title %}
@@ -6,16 +7,28 @@
 {% endblock %}
 
 {% block content %}
+
+<!-- Sisällön kontti -->
 <div class="container mt-5">
+
+    <!-- Kortti alkaa tästä -->
     <div class="card">
+
+        <!-- Kortin header -->
         <div class="card-header bg-danger text-white">
             <h4 class="mb-0">Vahvista tilan poisto</h4>
         </div>
+
+        <!-- Kortin body -->
         <div class="card-body">
             <h5>Haluatko varmasti poistaa tilan?</h5>
             <div class="mycard mt-3">
                 <div class="mycard-header">
+
+                    <!-- Tilan id -->
                     <div class="space-id">ID: {{ space.idNumber }}</div>
+
+                    <!-- If tarkistus tilan tyyppiä varten -->
                     <h1>
                         {% if space.type == "office" %}
                             Toimisto
@@ -29,10 +42,16 @@
                             Ei määritelty
                         {% endif %}
                     </h1>
+
+                    <!-- Tilan sijainti -->
                     <h2>{{ space.location }}</h2>
                 </div>
+
+                <!-- kortin body -->
                 <div class="mycard-body">
                     <p><strong>Sijainti:</strong> {{ space.location }}</p>
+
+                    <!-- If tarkistus tilan tyyppiä varten -->
                     <p><strong>Tyyppi:</strong>
                         {% if space.type == "office" %}
                             Toimisto
@@ -46,6 +65,8 @@
                             {{ space.type }}
                         {% endif %}
                     </p>
+
+                    <!-- If tarkists tilan julkisuutta varten -->
                     <p><strong>Julkisuus:</strong>
                         {% if space.publicity == "public" %}
                             Julkinen
@@ -53,9 +74,14 @@
                             Yksityinen
                         {% endif %}
                     </p>
+
+                    <!-- Tilan koko -->
                     <p><strong>Koko:</strong> {{ space.size }} m²</p>
+
+                    <!-- Tilan kapasiteetti -->
                     <p><strong>Kapasiteetti:</strong> {{ space.capacity }} henkilöä</p>
                     
+                    <!-- If tarkistus jos tilalla on varauksia -->
                     {% if has_reservations %}
                     <div class="alert alert-warning mt-3">
                         <strong>Varoitus:</strong> Tähän tilaan on tehty varauksia. Tilaa poistettaessa kaikki varaukset poistetaan myös.
@@ -65,13 +91,21 @@
             </div>
             
             <div class="mt-4">
+
+                <!-- Post form jolla lähetetään tieto eteenpäin -->
                 <form method="post">
                     {% csrf_token %}
+
+                    <!-- Submit nappi jokaa lähettää lomakkeen eteenpäin -->
                     <button type="submit" class="btn btn-danger">Kyllä, poista tila</button>
+
+                    <!-- Linkki joka näyttää napilta ja lataa sivun uudelleen -->
                     <a href="{% url 'my_spaces' %}" class="btn btn-secondary">Peruuta</a>
                 </form>
+            
             </div>
         </div>
     </div>
 </div>
+
 {% endblock %}
