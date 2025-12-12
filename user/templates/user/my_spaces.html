@@ -6,59 +6,88 @@
 {% endblock %}
 
 {% block content %}
+
+<!-- Sivun pääsisältö -->
 <div class="layout-container">
+
+    <!-- If tarkistus onko käyttäjä kirjautunut järjestelmään -->
     {% if user.is_authenticated %}
+
     <!-- Vasen sivupalkki: Omat varaukset -->
     <aside class="sidebar-left">
         <div class="reservations-sidebar">
             <h3>Omat varaukset</h3>
 
-        <!-- Nykyiset varaukset -->
-        <div class="reservation-section">
-            <h5>Nykyiset varaukset</h5>
-            {% if current_reservations %}
-            <div class="reservation-list">
-                {% for reservation in current_reservations %}
-                <div class="reservation-item">
-                    <div class="reservation-space">
-                      <strong>
-                        {% if reservation.space.type == "office" %}
-                          Toimisto
-                        {% elif reservation.space.type == "meeting_room" %}
-                          Kokoushuone
-                        {% elif reservation.space.type == "conference_room" %}
-                          Konferenssihuone
-                        {% elif reservation.space.type == "event_space" %}
-                          Tapahtumatila
-                        {% else %}
-                          {{ reservation.space.type }}
-                        {% endif %}
-                      </strong>
-                      - {{ reservation.space.location }}
+            <!-- Nykyiset varaukset sivupalkkia varten -->
+            <div class="reservation-section">
+                <h5>Nykyiset varaukset</h5>
+
+                <!-- If trarkistus aktiivisien varauksien näyttämistä varten -->
+                {% if current_reservations %}
+
+                    <!-- Varausten listaus -->
+                    <div class="reservation-list">
+
+                        <!-- For loop jokaista varausta varten -->
+                        {% for reservation in current_reservations %}
+
+                        <!-- Tietueen sisältö -->
+                        <div class="reservation-item">
+
+                            <div class="reservation-space">
+
+                                <!-- If tarkistus varauken tilan tyypin kielen kääntämistä varten ja sen näyttäminen -->
+                                <strong>
+                                    {% if reservation.space.type == "office" %}
+                                    Toimisto
+                                    {% elif reservation.space.type == "meeting_room" %}
+                                    Kokoushuone
+                                    {% elif reservation.space.type == "conference_room" %}
+                                    Konferenssihuone
+                                    {% elif reservation.space.type == "event_space" %}
+                                    Tapahtumatila
+                                    {% else %}
+                                    {{ reservation.space.type }}
+                                    {% endif %}
+                                </strong>
+
+                                <!-- Varatun tilan sijainti -->
+                                - {{ reservation.space.location }}
+                            </div>
+
+                            <!-- Varauksen aloitus ja loppumis aika -->
+                            <div class="reservation-time">
+                                {{ reservation.start|date:"d.m.Y H:i" }} - {{ reservation.end|date:"d.m.Y H:i" }}
+                            </div>
+
+                            <!-- Nappi varauksen peruutusta varten -->
+                            <div class="reservation-actions">
+                                <a href="{% url 'delete_reservation' reservation.id %}" 
+                                    class="btn btn-sm btn-danger"
+                                    onclick="return confirm('Haluatko varmasti peruuttaa varauksen?')">
+                                    Peruuta
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- For loop lopetus -->
+                        {% endfor %}
                     </div>
-                    <div class="reservation-time">
-                        {{ reservation.start|date:"d.m.Y H:i" }} - {{ reservation.end|date:"d.m.Y H:i" }}
-                    </div>
-                    <div class="reservation-actions">
-                      <a href="{% url 'delete_reservation' reservation.id %}" 
-                         class="btn btn-sm btn-danger"
-                         onclick="return confirm('Haluatko varmasti peruuttaa varauksen?')">
-                        Peruuta
-                      </a>
-                    </div>
-                </div>
-              {% endfor %}
+                
+                <!-- Jos ei varauksia -->
+                {% else %}
+                <p class="text-muted">Ei nykyisiä varauksia</p>
+                
+                {% endif %}
             </div>
-            {% else %}
-            <p class="text-muted">Ei nykyisiä varauksia</p>
-          {% endif %}
-        </div>
 
             <!-- Nappi kaikkien varausten näyttämiseen -->
             <div class="text-center mt-3">
                 <a href="{% url 'my_reservations' %}" class="btn btn-primary btn-sm">Näytä kaikki varaukset</a>
             </div>
+
         </div>
+
     </aside>
     {% endif %}
 
@@ -67,7 +96,10 @@
         <div class="main">
             <h1>Omat tilat</h1>
 
+            <!-- If tarkistus virheilmoituksia varten -->
             {% if messages %}
+
+                <!-- For loop jokaista virhe ilmoitusta varten -->
                 {% for message in messages %}
                     <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}">
                         {{ message }}
@@ -77,18 +109,24 @@
 
             <!-- Nappi uuden tilan luomiseen -->
             <div class="text-center mb-4">
-                <a href="{% url 'create_space' %}" class="btn btn-primary btn-lg">
-                    + Luo uusi tila
+                <a href="{% url 'create_space' %}">
+                    <button class="btn btn-primary">+ Luo uusi tila</button> 
                 </a>
             </div>
 
             <!-- Tilojen listaus -->
             <div class="cards-container">
+
+                <!-- For loop jokaista tilaa kohden -->
                 {% for tila in user_spaces %}
+
                 <!-- Kortti alkaa tästä -->
                 <div class="mycard">
+
                     <!-- Kortin header -->
                     <div class="mycard-header">
+
+                        <!-- If tarkistus tilan tyypin, kielen kääntämistä ja sen näyttämistä -->
                         <h1>
                             {% if tila.type == "office" %}
                                 Toimisto
@@ -102,12 +140,18 @@
                                 Ei määritelty
                             {% endif %}
                         </h1>
+
+                        <!-- Tilan sijainti ja sen näyttäminen -->
                         <h2>{{ tila.location }}</h2>
                     </div>
 
                     <!-- Kortin sisältö -->
                     <div class="mycard-body">
+
+                        <!-- Tilan sijainti ja sen näyttäminen -->
                         <p><strong>Sijainti:</strong> {{ tila.location }}</p>
+
+                        <!-- If tarkistus tilan tyypin, kielen kääntäminen ja sen näyttäminen -->
                         <p><strong>Tyyppi:</strong>
                             {% if tila.type == "office" %}
                                 Toimisto
@@ -121,6 +165,8 @@
                                 {{ tila.type }}
                             {% endif %}
                         </p>
+
+                        <!-- If tarkistus tilan julkisuuden, kielen kääntäminen ja sen näyttämistä -->
                         <p><strong>Julkisuus:</strong>
                             {% if tila.publicity == "public" %}
                                 Julkinen
@@ -128,6 +174,8 @@
                                 Yksityinen
                             {% endif %}
                         </p>
+
+                        <!-- If tarkistus tilan palvelutyypin, kielen kääntäminen ja sen näyttämistä -->
                         <p><strong>Palvelu:</strong>
                             {% if tila.service_type == "rental" %}
                                 Vuokra
@@ -135,35 +183,59 @@
                                 Laina
                             {% endif %}
                         </p>
+
+                        <!-- Tilan koko ja sen näyttminen -->
                         <p><strong>Koko:</strong> {{ tila.size }} m²</p>
+
+                        <!-- Tilan kapasiteetti ja sen näyttäminen -->
                         <p><strong>Kapasiteetti:</strong> {{ tila.capacity }} henkilöä</p>
                         
-                        <!-- Toiminnot -->
+                        <!-- Sivulle johdattavia painikkeita -->
                         <div class="text-center mt-3">
                             <div class="btn-group" role="group">
+
+                                <!-- Painike joka johdattaa tilan yksityiskohta sivulle -->
                                 <a href="{% url 'spaces_details' tila.slug %}" class="btn btn-outline-primary">Näytä tiedot</a>
+
+                                <!-- Painike joka johdattaa tilan muokkaus sivulle -->
                                 <a href="{% url 'edit_space' tila.idNumber %}" class="btn btn-outline-secondary">Muokkaa</a>
+
+                                <!-- Painike joka johdattaa tilan poisto sivulle -->
                                 <a href="{% url 'delete_space' tila.idNumber %}" class="btn btn-outline-danger">Poista</a>
                             </div>
                         </div>
+
                     </div>
                 </div>
+
+                <!-- Jos käyttäjällä ei ole tiloja -->
                 {% empty %}
-                <!-- Tyhjä tila - näytetään kun käyttäjällä ei ole tiloja -->
+
+                <!-- Näytetään kun käyttäjällä ei ole tiloja -->
                 <div class="mycard">
+                    <!-- Kortin header -->
                     <div class="mycard-header">
                         <h1>Ei omia tiloja</h1>
                     </div>
+
+                    <!-- Korting body -->
                     <div class="mycard-body">
                         <p>Sinulla ei ole vielä omia tiloja. Aloita luomalla ensimmäinen tilasi!</p>
+
+                        <!-- Painike joka johtaa tilan luonti sivulle -->
                         <div class="text-center">
-                            <a href="{% url 'create_space' %}" class="btn btn-primary">Luo ensimmäinen tilasi</a>
+                            <a href="{% url 'create_space' %}">
+                                <button class="btn btn-primary">Luo ensimmäinen tilasi</button>
+                            </a>
                         </div>
+
                     </div>
                 </div>
+
                 {% endfor %}
             </div>
         </div>
     </main>
 </div>
+
 {% endblock %}
