@@ -12,7 +12,7 @@
 <div class="container">
     <h2>Lisää tila</h2>
 
-    <!--  -->
+    <!-- Lomake ja sen sisällön eteentpäin lähettäminen (POST) -->
     <form method="POST">
 
         <!-- CSRF tokenin luonti -->
@@ -21,10 +21,10 @@
         <!-- Luodaan form paragraaphina (kappaleena) -->
         {{ form.as_p }}
 
-        <!-- Submit nappi jokaa lähettää lomakkeen eteenpäin -->
+        <!-- Submit painike jokaa lähettää lomakkeen eteenpäin -->
         <button type="submit" class="btn btn-primary">Lisää tila</button>
 
-        <!-- Linkki joka näyttää napilta ja lataa sivun uudelleen -->
+        <!-- Painike joka lataa sivun uudelleen -->
         <a href="{% url 'profile' %}">
             <button type="button" class="btn btn-secondary">Peruuta</button>
         </a>

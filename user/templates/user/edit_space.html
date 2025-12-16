@@ -23,14 +23,19 @@
                     <h1>
                         {% if space.type == "office" %}
                             Toimisto
+
                         {% elif space.type == "meeting_room" %}
                             Kokoushuone
+
                         {% elif space.type == "conference_room" %}
                             Konferenssihuone
+
                         {% elif space.type == "event_space" %}
                             Tapahtumatila
+
                         {% else %}
                             Ei määritelty
+                        
                         {% endif %}
                     </h1>
 
@@ -52,7 +57,7 @@
             <!-- Form jolla muokataan tilan tietoja -->
             <form method="post">
 
-                <!-- Uniikki salattu avain -->
+                <!-- CSRF tokenin luonti -->
                 {% csrf_token %}
 
                 <!-- Virheen tarkistus -->
@@ -118,8 +123,10 @@
 
                 <!-- Tallenna ja peruuta painikkeet -->
                 <div class="mt-4">
+                    
                     <!-- Tallennus painike (submit form) -->
                     <button type="submit" class="btn btn-primary">Tallenna muutokset</button>
+
                     <!-- Peruuta painike (lataa sivun uudeleen) -->
                     <a href="{% url 'my_spaces' %}" class="btn btn-secondary">Peruuta</a>
                 </div>

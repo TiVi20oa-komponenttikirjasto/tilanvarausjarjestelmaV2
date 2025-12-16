@@ -6,36 +6,51 @@
 {% endblock %}
 
 {% block content %}
+
   <h2>Tilojen varaukset ja vapaat ajat</h2>
+  
   <div id="calendar"
     data-authenticated="{{ user.is_authenticated|yesno:'1,0' }}"
     data-first-name="{{ user.first_name|default:''|escape }}"
     data-last-name="{{ user.last_name|default:''|escape }}"
-    data-email="{{ user.email|default:''|escape }}"></div>
+    data-email="{{ user.email|default:''|escape }}">
+  </div>
+
   <script>
+    
+    // Kalenteriin lisättävä data alustus
     document.addEventListener("DOMContentLoaded", function () {
       var calendarEl = document.getElementById("calendar");
-      // read authenticated user data from data-attributes
       var dataset = calendarEl ? calendarEl.dataset : {};
+
+      // Asetetaan kirjautuneen käyttäjän tiedot currentUser muuttujaan tai syötetään ne itse
       var currentUser = {
+
+        // Kirjautuneen käyttäjän tarkistus 
         authenticated: dataset.authenticated === '1',
-        firstName: dataset.firstName || '',
+
+        // Kirjautuneen käyttäjän etunimi, sukunimi ja sähköposti tai tyhjä
+        firstName: dataset.firstName || '', 
         lastName: dataset.lastName || '',
         email: dataset.email || ''
       };
 
-      // helper to format YYYY-MM-DD
+      
+      // Funtkio jolla käännetään päiväys ISO formaattiin
       function toYMD(d) {
         var y = d.getFullYear();
         var m = String(d.getMonth() + 1).padStart(2, '0');
         var day = String(d.getDate()).padStart(2, '0');
+
+        // Palautuetaan vuosi, kuukausi ja päivä
         return y + '-' + m + '-' + day;
       }
 
-      // get CSRF token from template context
+      // Haeataan CSRF token temoplatesta sisältöineen
       var csrftoken = '{{ csrf_token }}';
 
       var calendar = new FullCalendar.Calendar(calendarEl, {
+        // Kalenterinäkymän ruuduukko, varaukset, kieli, valinta ja painike jolla voidaan näyttää nykyinen päivä
         initialView: "dayGridMonth",
         events: "/events-json/1/",
         locale: 'fi',
@@ -44,19 +59,25 @@
           today: 'Tänään'
         },
         selectAllow: function(selectInfo) {
-          // prevent selecting past dates
+          
+          // Estetään menneiden päiväien valinta
           var start = new Date(selectInfo.start.getFullYear(), selectInfo.start.getMonth(), selectInfo.start.getDate());
           var end = new Date(selectInfo.end.getFullYear(), selectInfo.end.getMonth(), selectInfo.end.getDate());
           var today = new Date();
           var todayKey = toYMD(new Date(today.getFullYear(), today.getMonth(), today.getDate()));
           var cur = new Date(start);
+
+          // While loop käydään läpi niin kauan kun cur on pienempi kuin end
           while (cur < end) {
             var key = toYMD(cur);
             if (key < todayKey) return false;
             cur.setDate(cur.getDate() + 1);
           }
+
+          // Palautetaan true totuus-arvo jos valittu päivä on valittavissa
           return true;
         },
+
         select: function(info) {
           // If user is authenticated, auto-submit bookings for selected days
           if (!currentUser.authenticated) {
@@ -65,6 +86,7 @@
             calendar.unselect();
             return;
           }
+
           var startDate = new Date(info.start.getFullYear(), info.start.getMonth(), info.start.getDate());
           var endDate = new Date(info.end.getFullYear(), info.end.getMonth(), info.end.getDate());
           var dayStrs = [];
@@ -85,25 +107,30 @@
                   headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrftoken },
                   body: JSON.stringify({ title: 'varattu', start: day + 'T00:00:00', end: day + 'T23:59:59', space_id: 1, first_name: currentUser.firstName, last_name: currentUser.lastName, email: currentUser.email })
                 });
+
                 var j = await resp.json();
                 if (j.status !== 'ok') {
                   alert('Varauksen luominen epäonnistui: ' + (j.message || JSON.stringify(j)));
                   calendar.refetchEvents();
                   return;
                 }
+
               } catch (err) {
                 alert('Verkkovirhe yritettäessä varata: ' + err);
                 calendar.refetchEvents();
                 return;
               }
             }
+
             alert('Varaukset luotu: ' + dayStrs.length + ' päivän ajan.');
             calendar.refetchEvents();
             calendar.unselect();
           })();
         }
+
       });
       calendar.render();
     });
   </script>
+
 {% endblock %}

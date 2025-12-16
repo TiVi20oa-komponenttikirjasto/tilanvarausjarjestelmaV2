@@ -8,37 +8,63 @@
 
 {% block content %}
 
+<!-- Pää sisällön kontti -->
 <div class="container">
+
+    <!-- Pää sisältö -->
     <h2>Oma profiili</h2>
+
+    <!-- Kortin alustus -->
     <div class="my-card">
+
+        <!-- Kortin body -->
         <div class="card-body">
+
+            <!-- Kirjautuneen käyttäjän nimen näyttäminen -->
             <p><strong>Käyttäjänimi:</strong> {{ user.username }}</p>
+
+            <!-- Kirjautuneen käyttäjän sähköpostin näyttäminen -->
             <p><strong>Sähköposti:</strong> {{ user.email }}</p>
+
+            <!-- Kirjautuneen käyttäjän etunimen näyttäminen -->
             <p><strong>Etunimi:</strong> {{ user.first_name }}</p>
+
+            <!-- Kirjautuneen käyttäjän sukunimen näyttäminen -->
             <p><strong>Sukunimi:</strong> {{ user.last_name }}</p>
+
+            <!-- Kirjautuneen käyttäjän liittymis päivän näyttäminen -->
             <p><strong>Liittynyt:</strong> {{ user.date_joined|date:"d.m.Y H:i" }}</p>
+
+            <!-- Painike joka johtaa profiilin muokkaus sivulle -->
             <a href="{% url 'edit_profile' %}">
                 <button class="btn btn-primary">Muokkaa profiilia</button>
             </a>
         </div>
+
+        <!-- Painike joka johdattaa käyttäjän luomiin varauksiin -->
         <div class="card-body">
             <p>Omat varaukset</p>
             <a href="{% url 'my_reservations' %}">
                 <button class="btn btn-primary">Omat varaukset</button>
             </a>
         </div>
+
+        <!-- Painike joka johtaa tilan luonti sivulle, tämä tila on sidottu käyttäjään -->
         <div class="card-body">
             <p>Lisää tila jota haluat vuokrata/lainata</p>
             <a href="{% url 'create_space' %}">
                 <button class="btn btn-primary">Luo tila</button>
             </a>
         </div>
+
+        <!-- Painike joka johtaa käyttäjän luomiin tilojen sivulle -->
         <div class="card-body">
             <p>Omat luomat tilat</p>
             <a href="{% url 'my_spaces' %}">
             <button class="btn btn-primary">Omat tilat</button>
             </a>
         </div>
+
     </div>
 </div>
 

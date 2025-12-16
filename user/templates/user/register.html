@@ -1,3 +1,5 @@
+<!-- Tämä sivu näyttää käyttäjän rekisteröinti sivun -->
+
 {% extends "master.html" %}
 
 {% block title %}
@@ -5,21 +7,49 @@
 {% endblock %}
 
 {% block content %}
-  <head>
-    <title>Rekisteröinti</title>
-  </head>
-  <body>
-    <h1>Rekisteröidy</h1>
+
+  <!-- Pää sisällön kontti -->
+  <div class="container d-flex justify-content-center">
+
+    <!-- Asetetaan rajat sisllön keskitystä varten -->
+    <div class="w-100" style="max-width:480px;">
+
+      <!-- Pää sisällön keskitys -->
+      <h1 class="text-center">Rekisteröidy</h1>
+
+      <!-- Line brake -->
+      <br>
+
+      <!-- Post form rekisteröinti tietojen eteenpäin lähettämiseen -->
       <form method="post" action="{% url 'register' %}">
+
+        <!-- CSRF tokenin luonti -->
         {% csrf_token %}
+
+        <!-- Djangon tapa renderöidä form kappaleena (paragraph) -->
         {{ form.as_p }}
-        <button type="submit" class="btn btn-primary">Luo tili</button>
+
+        <!-- Painike tietojen eteenpäin lähettämiseen (POST) -->
+        <div class="d-grid">
+          <button type="submit" class="btn btn-primary">Luo tili</button>
+        </div>
+
       </form>
-    <br>
-    <p>Onko sinulla jo tili? 
-      <a href="{% url 'login' %}"><br>
-        <button class="btn btn-primary">Kirjaudu</button>
-      </a>
-    </p>
-  </body>
+
+      <!-- Line brake -->
+      <br>
+
+      <!-- Kirjautumis painikkeen näyttäminen -->
+      <p class="text-center mt-3">
+        Onko sinulla jo tili?
+
+        <!-- Painike kirjautumis sivulle -->
+        <a href="{% url 'login' %}"> <br>
+          <button class="btn btn-primary">Kirjaudu</button>
+        </a>
+      </p>
+
+    </div>
+  </div>
+
 {% endblock %}
