@@ -40,14 +40,19 @@
                                 <strong>
                                     {% if reservation.space.type == "office" %}
                                     Toimisto
+
                                     {% elif reservation.space.type == "meeting_room" %}
                                     Kokoushuone
+
                                     {% elif reservation.space.type == "conference_room" %}
                                     Konferenssihuone
+
                                     {% elif reservation.space.type == "event_space" %}
                                     Tapahtumatila
+
                                     {% else %}
                                     {{ reservation.space.type }}
+
                                     {% endif %}
                                 </strong>
 
@@ -70,7 +75,7 @@
                             </div>
                         </div>
 
-                        <!-- For loop lopetus -->
+                        <!-- Lopetetaan For loop -->
                         {% endfor %}
                     </div>
                 
@@ -79,6 +84,7 @@
                 <p class="text-muted">Ei nykyisiä varauksia</p>
                 
                 {% endif %}
+
             </div>
 
             <!-- Nappi kaikkien varausten näyttämiseen -->
@@ -89,6 +95,7 @@
         </div>
 
     </aside>
+
     {% endif %}
 
     <!-- Pääsisältö -->
@@ -104,7 +111,10 @@
                     <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %}">
                         {{ message }}
                     </div>
+                
+                <!-- Lopetetaan For loop -->
                 {% endfor %}
+
             {% endif %}
 
             <!-- Nappi uuden tilan luomiseen -->
@@ -130,14 +140,19 @@
                         <h1>
                             {% if tila.type == "office" %}
                                 Toimisto
+
                             {% elif tila.type == "meeting_room" %}
                                 Kokoushuone
+
                             {% elif tila.type == "conference_room" %}
                                 Konferenssihuone
+
                             {% elif tila.type == "event_space" %}
                                 Tapahtumatila
+
                             {% else %}
                                 Ei määritelty
+
                             {% endif %}
                         </h1>
 
@@ -155,14 +170,19 @@
                         <p><strong>Tyyppi:</strong>
                             {% if tila.type == "office" %}
                                 Toimisto
+
                             {% elif tila.type == "meeting_room" %}
                                 Kokoushuone
+
                             {% elif tila.type == "conference_room" %}
                                 Konferenssihuone
+
                             {% elif tila.type == "event_space" %}
                                 Tapahtumatila
+
                             {% else %}
                                 {{ tila.type }}
+
                             {% endif %}
                         </p>
 
@@ -170,8 +190,10 @@
                         <p><strong>Julkisuus:</strong>
                             {% if tila.publicity == "public" %}
                                 Julkinen
+
                             {% else %}
                                 Yksityinen
+
                             {% endif %}
                         </p>
 
@@ -179,8 +201,10 @@
                         <p><strong>Palvelu:</strong>
                             {% if tila.service_type == "rental" %}
                                 Vuokra
+
                             {% else %}
                                 Laina
+                                
                             {% endif %}
                         </p>
 
@@ -232,6 +256,7 @@
                     </div>
                 </div>
 
+                <!-- Lopetetaan For loop -->
                 {% endfor %}
             </div>
         </div>

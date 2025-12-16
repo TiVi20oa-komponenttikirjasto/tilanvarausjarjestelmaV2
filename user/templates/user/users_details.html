@@ -12,14 +12,24 @@
 
     <!-- Kortin header -->
     <div class="mycard-header">
+
+      <!-- Käyttäjän etu ja sukunimi -->
       <h1>{{ mymember.firstname }} {{ mymember.lastname }}</h1>
     </div>
 
     <!-- Kortin sisältö -->
     <div class="mycard-body">
+
+      <!-- Käyttäjän ID numero -->
       <p>ID: {{ mymember.idNumber }}</p>
+
+      <!-- Käyttäjän puhelin -->
       <p>Puhelin: {{ mymember.phone }}</p>
+
+      <!-- Käyttäjän sähköposti -->
       <p>Sähköposti: {{ mymember.email }}</p>
+
+      <!-- Käyttäjän liittymis päivä -->
       <p>Liittynyt jäseneksi: {{ mymember.joined_date }}</p>
     </div>
 

@@ -1,13 +1,19 @@
 <!-- Tämä on sovelluksen 404-virhesivu, joka näytetään kun pyydettyä sivua ei löydy. -->
 
 <!DOCTYPE html>
+
 <html>
-<title>Wrong address</title>
-<body>
 
-<h1>Ooops!</h1>
+    <title>Wrong address</title>
 
-<h2>I cannot find the file you requested!</h2>
+    <body>
 
-</body>
+        <h1 style="text-align: center;">Tätä sivua ei ole olemassa</h1>
+
+        <h2 style="text-align: center;">
+            Palaa takaisin tilanvarausjarjestelmän <a href="{% url 'main' %}" class="btn btn-primary">etusivulle</a>
+        </h2>
+
+    </body>
+
 </html>
