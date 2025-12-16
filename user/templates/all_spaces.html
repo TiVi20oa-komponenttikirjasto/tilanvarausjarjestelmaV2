@@ -6,7 +6,9 @@
 {% endblock %}
 
 {% block content %}
+
 <div class="layout-container">
+
   {% if user.is_authenticated %}
   <aside class="sidebar-left">
     <div class="reservations-sidebar">
@@ -27,14 +29,19 @@
                 <strong>
                   {% if reservation.space.type == "office" %}
                     Toimisto
+
                   {% elif reservation.space.type == "meeting_room" %}
                     Kokoushuone
+
                   {% elif reservation.space.type == "conference_room" %}
                     Konferenssihuone
+
                   {% elif reservation.space.type == "event_space" %}
                     Tapahtumatila
+
                   {% else %}
                     {{ reservation.space.type }}
+
                   {% endif %}
                 </strong>
 
@@ -55,13 +62,16 @@
                   Peruuta
                 </a>
               </div>
+
             </div>
 
             <!-- Lopetetaan For loop -->
             {% endfor %}
           </div>
+
         {% else %}
           <p class="text-muted">Ei nykyisiä varauksia</p>
+
         {% endif %}
       </div>
 
@@ -69,6 +79,7 @@
       <div class="text-center mt-3">
         <a href="{% url 'my_reservations' %}" class="btn btn-primary btn-sm">Näytä kaikki varaukset</a>
       </div>
+
     </div>
   </aside>
   {% endif %}
@@ -156,6 +167,7 @@
               <button type="submit" class="btn btn-primary">Hae</button>
               <a href="{% url 'spaces' %}" class="btn btn-secondary">Tyhjennä</a>
             </div>
+
           </div>
         </form>
       </div>
@@ -175,62 +187,47 @@
             <h1>
               {% if tila.type == "office" %}
                 Toimisto
+
               {% elif tila.type == "meeting_room" %}
                 Kokoushuone
+
               {% elif tila.type == "conference_room" %}
                 Konferenssihuone
+
               {% elif tila.type == "event_space" %}
                 Tapahtumatila
+
               {% else %}
                 Ei määritelty
+
               {% endif %}
             </h1>
+
             <!-- Prefer showing detailed address; fall back to location if empty -->
             <h2>
               {% if tila.address %}
                 {{ tila.address }}{% if tila.municipality %}, {{ tila.municipality }}{% endif %}
+
               {% else %}
                 {{ tila.location }}{% if tila.municipality %}, {{ tila.municipality }}{% endif %}
+
               {% endif %}
             </h2>
+
           </div>
 
           <!-- Kortin sisältö -->
           <div class="mycard-body">
-
-            <!-- Tilan osoite ja paikkakunta -->
-            <!-- <p><strong>Osoite:</strong>
-              {% if tila.address %}
-                {{ tila.address }}{% if tila.municipality %}, {{ tila.municipality }}{% endif %}
-              {% else %}
-                {{ tila.location }}{% if tila.municipality %}, {{ tila.municipality }}{% endif %}
-              {% endif %}
-            </p> -->
-
-            <!-- Tilan tyyppi asetetaan If muuttujan mukaiseksi -->
-            <!-- <p><strong>Tyyppi:</strong> -->
-
-              <!-- If tarkastelu tilan tyyppiä varten -->
-              <!-- {% if tila.type == "office" %}
-                Toimisto
-              {% elif tila.type == "meeting_room" %}
-                Kokoushuone
-              {% elif tila.type == "conference_room" %}
-                Konferenssihuone
-              {% elif tila.type == "event_space" %}
-                Tapahtumatila
-              {% else %}
-                {{ tila.type }}
-              {% endif %}
-            </p> -->
 
             <!-- Tilan tiedot rivissä -->
             <div class="space-attrs">
               <p class="space-attr"><strong>Palvelu:</strong>
                 {% if tila.service_type == "rental" %}
                   Vuokra
+
                 {% else %}
                   Laina
+
                 {% endif %}
               </p>
 
@@ -243,6 +240,7 @@
             <div class="text-center mt-3">
               <a href="{% url 'spaces_details' tila.slug %}" class="btn btn-outline-primary">Näytä tiedot & varaa</a>
             </div>
+
           </div>
 
           <!-- Kortti loppuu tähän -->
@@ -252,17 +250,23 @@
         {% empty %}
         
         <div class="mycard">
+
           <div class="mycard-header">
             <h1>Ei tuloksia</h1>
           </div>
+
           <div class="mycard-body">
             <p>Hakutuloksia ei löytynyt. Kokeile toisia hakuehtoja</p>
             <a href="{% url 'spaces' %}" class="btn btn-primary">Näytä kaikki tilat</a>
           </div>
+
         </div>
+
+        <!-- Lopetetaan For loop -->
         {% endfor %}
       </div>
     </div>
   </main>
 </div>
+
 {% endblock %}
