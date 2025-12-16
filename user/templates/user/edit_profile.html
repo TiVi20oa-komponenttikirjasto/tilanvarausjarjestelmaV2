@@ -16,6 +16,8 @@
         <!-- For loop tarkistus sessioviesti listaa varten -->
         {% for message in messages %}
             <div class="alert alert">{{ message.tag }}{{ message }}</div>
+
+        <!-- Lopetetaan For loop -->
         {% endfor %}
 
     </div>
@@ -62,14 +64,24 @@
 
                 <!-- For loop -->
                 {% for field in password_form %}
-                    {{ field.label_tag }}<br>
-                    {{ field }}<br>
+                    {{ field.label_tag }}
+
+                    <!-- Line brake -->
+                    <br>
+
+                    {{ field }}
+
+                    <!-- Line brake -->
+                    <br>
 
                     <!-- For loop error kenttää varten -->
                     {% for error in field.errors %}
                         <div class="text-danger small">{{ error }}</div>
+
+                    <!-- Lopetetaan For loop -->
                     {% endfor %}
 
+                <!-- Lopetetaan For loop -->
                 {% endfor %}
 
                 <!-- Submit nappi jokaa lähettää lomakkeen eteenpäin -->

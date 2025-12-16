@@ -32,14 +32,19 @@
                     <h1>
                         {% if space.type == "office" %}
                             Toimisto
+
                         {% elif space.type == "meeting_room" %}
                             Kokoushuone
+
                         {% elif space.type == "conference_room" %}
                             Konferenssihuone
+
                         {% elif space.type == "event_space" %}
                             Tapahtumatila
+
                         {% else %}
                             Ei määritelty
+                            
                         {% endif %}
                     </h1>
 
@@ -55,14 +60,19 @@
                     <p><strong>Tyyppi:</strong>
                         {% if space.type == "office" %}
                             Toimisto
+
                         {% elif space.type == "meeting_room" %}
                             Kokoushuone
+
                         {% elif space.type == "conference_room" %}
                             Konferenssihuone
+
                         {% elif space.type == "event_space" %}
                             Tapahtumatila
+
                         {% else %}
                             {{ space.type }}
+                            
                         {% endif %}
                     </p>
 
@@ -94,6 +104,8 @@
 
                 <!-- Post form jolla lähetetään tieto eteenpäin -->
                 <form method="post">
+
+                    <!-- CSRF tokenin luonti -->
                     {% csrf_token %}
 
                     <!-- Submit nappi jokaa lähettää lomakkeen eteenpäin -->

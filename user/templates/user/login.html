@@ -20,7 +20,7 @@
     <!-- Post form joka lähettää kirjautumis tiedot eteenpäin -->
     <form method="post" action="{% url 'login' %}">
 
-      <!-- CSRF token aktivointi -->
+      <!-- CSRF tokenin luonti -->
       {% csrf_token %}
 
       <!-- Käyttäjä tunnus kenttä -->

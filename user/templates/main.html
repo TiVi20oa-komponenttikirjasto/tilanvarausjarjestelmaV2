@@ -6,8 +6,11 @@
 {% endblock %}
 
 {% block content %}
+
 <div class="layout-container">
+
   {% if user.is_authenticated %}
+
   <!-- Vasen sivupalkki: Omat varaukset -->
   <aside class="sidebar-left">
     <div class="reservations-sidebar">
@@ -16,65 +19,128 @@
       <!-- Nykyiset varaukset -->
       <div class="reservation-section">
         <h5>Nykyiset varaukset</h5>
+
+        <!-- Aktiivisien varauksien if tarkistus -->
         {% if current_reservations %}
+
           <div class="reservation-list">
+
+            <!-- For loop varauksien läpikäntiin -->
             {% for reservation in current_reservations %}
+
             <div class="reservation-item">
               <div class="reservation-space">
+
+                <!-- käännetään tilan tyyppi suomenkieliseksi -->
                 <strong>
                   {% if reservation.space.type == "office" %}
                     Toimisto
+
                   {% elif reservation.space.type == "meeting_room" %}
                     Kokoushuone
+
                   {% elif reservation.space.type == "conference_room" %}
                     Konferenssihuone
+
                   {% elif reservation.space.type == "event_space" %}
                     Tapahtumatila
+
                   {% else %}
                     {{ reservation.space.type }}
+
                   {% endif %}
+
                 </strong>
+
+                <!-- Lisätään tilan sijainti -->
                 - {{ reservation.space.location }}
               </div>
+
+              <!-- Lisätään varauksen alku, loppu päivä ja aika -->
               <div class="reservation-time">
                 {{ reservation.start|date:"d.m.Y H:i" }} - {{ reservation.end|date:"d.m.Y H:i" }}
               </div>
+
+              <!-- Painike sivupalin sisään -->
               <div class="reservation-actions">
+
+                <!-- Painike joka avaa valitun varauksen peruutusvarmistuksen -->
                 <a href="{% url 'delete_reservation' reservation.id %}" 
                    class="btn btn-sm btn-danger"
                    onclick="return confirm('Haluatko varmasti peruuttaa varauksen?')">
                   Peruuta
                 </a>
+
               </div>
+
             </div>
+
+            <!-- Lopetetaan For loop -->
             {% endfor %}
+
           </div>
+
         {% else %}
+          <!-- Jos ei vauksia näytetään "Ei nykyisiä varauksia teksti" -->
           <p class="text-muted">Ei nykyisiä varauksia</p>
+
         {% endif %}
+
       </div>
       
       <!-- Nappi kaikkien varausten näyttämiseen -->
       <div class="text-center mt-3">
         <a href="{% url 'my_reservations' %}" class="btn btn-primary btn-sm">Näytä kaikki varaukset</a>
       </div>
+
     </div>
   </aside>
+
   {% endif %}
 
   <!-- Pääsisältö -->
   <main class="main-content {% if user.is_authenticated %}with-sidebar{% endif %}">
+
     <div class="main">
+
+      <!-- Kortin body -->
       <div class="mycard-body">
         <h1>Tilojen vuokraus ja lainaus</h1>
+
+        <!-- Line brake -->
+        <br>
+
         <h2>Tilat</h2>
-        <p>Näe kaikki <a href="spaces/">tilat</a></p><br>
+
+        <!-- Pinike joka johtaa kaikkientilojen näkymään -->
+        <div class="text-center mt-3">
+          <p>Näe kaikki tilat</p>
+          <a href="{% url 'spaces' %}">
+            <button class="btn btn-primary">Tilat</button>
+          </a>
+        </div>
+        
+        <br>
+
+        <!-- If tarkistus onko käyttäjä kirjautuneena -->
         {% if not user.is_authenticated %}
-        <h2>Kirjaudu sisään</h2>
-        <p><a href="{% url 'login' %}">Kirjaudu sisään</a> nähdäksesi omat varauksesi ja tehdäksesi uusia varauksia.</p>
+
+        <!-- Painike joka johtaa sisäänkirjautumis sivulle -->
+        <div class="text-center mt-3">
+          <h2>Kirjaudu sisään</h2>
+          <p>Nähdäksesi omat varauksesi ja tehdäksesi uusia varauksia</p> 
+          <a href="{% url 'login' %}">
+            <button class="btn btn-primary">Kirjaudu</button>
+          </a>
+        </div>
+
         {% endif %}
       </div>
+
     </div>
+
   </main>
+
 </div>
+
 {% endblock %}

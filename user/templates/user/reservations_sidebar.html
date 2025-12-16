@@ -1,25 +1,55 @@
+<!-- Tämä tuottaa käyttäjään tekemät varaukset -->
+
+<!-- If tarkistus nykyisiä varauksia varten -->
 {% if current_reservations %}
+
+    <!-- Pää sisällön header -->
     <h4 class="mb-3">Omat varaukset</h4>
+
+    <!-- Lista jonka järjestystä ei oteta huomioon -->
     <ul class="list-group mb-4">
+
+        <!-- For loop varausten listaamiseen -->
         {% for reservation in current_reservations %}
+
+            <!-- Listan sisältö -->
             <li class="list-group-item">
+
+                <!-- If tarkistus tilan tyyppiä varten ja sen käätnämistä suomen kieleen -->
                 <strong>
                     {% if reservation.space.type == "office" %}
                         Toimisto
+
                     {% elif reservation.space.type == "meeting_room" %}
                         Kokoushuone
+
                     {% elif reservation.space.type == "conference_room" %}
                         Konferenssihuone
+
                     {% elif reservation.space.type == "event_space" %}
                         Tapahtumatila
+
                     {% else %}
                         {{ reservation.space.type }}
+                        
                     {% endif %}
                 </strong>
-                <br>{{ reservation.start|date:"d.m.Y H:i" }} – {{ reservation.end|date:"d.m.Y H:i" }}
+
+                <!-- Line brake -->
+                <br>
+                
+                <!-- Jokaisen varauksen alku ja loppu päivä ja aika -->
+                {{ reservation.start|date:"d.m.Y H:i" }} – {{ reservation.end|date:"d.m.Y H:i" }}
             </li>
+
+        <!-- Lopetetaan For loop -->
         {% endfor %}
+
     </ul>
+
+<!-- Jos ei varauksia -->
 {% else %}
-    <p class="text-muted">Ei varauksia.</p>
+
+    <!-- Asetetaan "Ei varaksia teksti" -->
+    <p class="text-muted">Ei varauksia</p>
 {% endif %}

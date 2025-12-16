@@ -1,3 +1,5 @@
+<!-- Tämä sivu näyttää onnistuneen rekisteröinnin sivun -->
+
 {% extends "master.html" %}
 
 {% block title %}
@@ -5,17 +7,32 @@
 {% endblock %}
 
 {% block content %}
-  <head>
-    <title>Rekisteröinti onnistui</title>
-  </head>
+
+<!-- Pää sisällön kontti -->
+<div class="container d-flex justify-content-center">
   
-  <body>
-    <h1>Rekisteröinti onnistui</h1>
-    <p>Käyttäjä luotu onnistuneesti.</p>
-    <p>
-      <a href="{% url 'login' %}"><button class="btn btn-primary">Kirjaudu sisään</button></a>
-        tai palaa 
-      <a href="{% url 'main' %}"><button class="btn btn-primary">etusivulle</button></a>
-    </p>
-  </body>
+  <!-- Asetetaan rajat sisllön keskitystä varten -->
+  <div class="w-100" style="max-width: 480px;">
+
+    <!-- Pää sisällön keskitys -->
+    <div class="text-center">
+      <h1>Rekisteröinti onnistui</h1>
+      <p>Käyttäjä luotu onnistuneesti</p>
+
+      <!-- Painikkeet -->
+      <p>
+
+        <!-- Painike joka johdattaa kirjautumis sivulle -->
+        <a href="{% url 'login' %}"><button class="btn btn-primary">Kirjaudu sisään</button></a>
+
+        <!-- Line brake -->
+        <br>
+
+        <!-- Painike joka johdattaa etusivukke -->
+        <a href="{% url 'main' %}"><button class="btn btn-primary">Palaa etusivulle</button></a>
+      </p>
+    </div>
+  </div>
+</div>
+
 {% endblock %}

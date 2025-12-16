@@ -8,17 +8,22 @@
 
 {% block content %}
 
-    <!-- Pää sisältä -->
+    <!-- Pää sisältö -->
     <div class="container mt-4">
         <h1>Omat varaukset</h1>
 
         <!-- If tarkistus virhe ilmoituksille -->
         {% if messages %}
+
+            <!-- For loop virheilmoitusten läpikäyntiin -->
             {% for message in messages %}
                 <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags}}{% endif %}">
                     {{ message }}
                 </div>
+
+            <!-- Lopetetaan For loop -->
             {% endfor %}
+
         {% endif %}
 
         <!-- Nykyiset varaukset -->
@@ -63,14 +68,19 @@
                                         <!-- If tarkistus tilan tyypin kielen kääntämistä varten ja sen näyttäminen -->
                                         {% if reservation.space.type == "office" %}
                                             Toimisto
+
                                         {% elif reservation.space.type == "meeting_room" %}
                                             Kokoushuone
+
                                         {% elif reservation.space.type == "conference_room" %}
                                             Konferenssihuone
+
                                         {% elif reservation.space.type == "event_space" %}
                                             Tapahtumatila
+
                                         {% else %}
                                             {{ reservation.space.type }}
+
                                         {% endif %}
                                     </td>
 
@@ -92,13 +102,17 @@
                                     <td>
                                         <!-- Post metodi joka lähettää peruutus pyynnön eteenpäin -->
                                         <form method="post" action="{% url 'delete_reservation' reservation.id %}" style="display: inline;">
+
+                                            <!-- CSRF tokenin luonti -->
                                             {% csrf_token %}
+
+                                            <!-- Painike jolla peruutetaan varauksen poisto -->
                                             <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Haluatko varmasti peruuttaa varauksen')">Peruuta</button>
                                         </form>
                                     </td>
                                 </tr>
 
-                                <!-- For loopin lopetus -->
+                            <!-- For loopin lopetus -->
                             {% endfor %}
                         </tbody>
                     </table>
@@ -153,14 +167,19 @@
                                     <td>
                                         {% if reservation.space.type == "office" %}
                                             Toimisto
+
                                         {% elif reservation.space.type == "meeting_room" %}
                                             Kokoushuone
+
                                         {% elif reservation.space.type == "conference_room" %}
                                             Konferenssihuone
+
                                         {% elif reservation.space.type == "event_space" %}
                                             Tapahtumatila
+
                                         {% else %}
                                             {{ reservation.space.type }}
+
                                         {% endif %}
                                     </td>
 
@@ -179,6 +198,8 @@
                                     </td>
 
                                 </tr>
+
+                                <!-- Lopetetaan For loop -->
                                 {% endfor %}
                             </tbody>
                         </table>
