@@ -1,6 +1,5 @@
-<!--
-Tämä sivu näyttää yksittäisen tilan tiedot ja varauskalenterin.
--->
+<!-- Tämä sivu näyttää yksittäisen tilan tiedot ja varauskalenterin. -->
+
 {% extends "master.html" %}
 
 {% block title %}
@@ -9,371 +8,466 @@ Tämä sivu näyttää yksittäisen tilan tiedot ja varauskalenterin.
 
 {% block content %}
 {% load static %}
+
 <!-- FullCalendar is loaded in the base template (master.html) via local static bundle -->
 <div class="layout">
+
   <aside class="sidebar-left">
     <!-- Vasen sivupalkin sisältö -->
   </aside>
+
+    <!-- Sivun pääsisätlö -->
   <main class="main-content">
+
     <!-- Kortti alkaa tästä -->
     <div class="mycard">
+
+      <!-- Kortin header -->
       <div class="mycard-header">
+
+        <!-- Kortin ID numberon -->
         <div class="space-id">ID:{{ myspaces.idNumber }}</div>
+
+        <!-- If tarkistus tilan tyyppiä varten ja sen kääntämistä suomen kieleen -->
         <h1>
           {% if myspaces.type == "office" %}
             Toimisto
+
           {% elif myspaces.type == "meeting_room" %}
             Kokoushuone
+
           {% elif myspaces.type == "conference_room" %}
             Konferenssihuone
+
           {% elif myspaces.type == "event_space" %}
             Tapahtumatila
+
           {% else %}
             Ei määritelty
+
           {% endif %}
+
           {{ myspaces.location }}
         </h1>
       </div>
+
+      <!-- Kortin body -->
       <div class="mycard-body">
-        <p>Maakunta: {{ myspaces.location }}</p>
-        {% if myspaces.address %}
-        <p>Osoite: {{ myspaces.address }}{% if myspaces.municipality %}, {{ myspaces.municipality }}{% endif %}</p>
-        {% endif %}
+
+        <!-- If tarkistus tilan maakuntaa ja osoitetta varten ja sen kääntäminen suomen kieleen -->
         <p>
-          Tilan julkisuus: 
-          {% if myspaces.publicity == "private" %}
+          Maakunta: {{ myspaces.location }}
+        </p>
+
+        {% if myspaces.address %}
+
+        <p>
+          Osoite: {{ myspaces.address }}{% if myspaces.municipality %}, {{ myspaces.municipality }}{% endif %}
+        </p>
+
+        {% endif %}
+
+        <!-- If tarkistus tilan julkisuutta varten ja sen kääntäminen suomen kieleen -->
+        <p>
+          Tilan julkisuus: {% if myspaces.publicity == "private" %}
             Yksityinen
+
           {% elif myspaces.publicity == "public" %}
             Julkinen
+
           {% else %}
             Ei määritelty
+
           {% endif %}
         </p>
+
+        <!-- If tarkistus tilan palvelutyyppiä varten ja sen kääntäminen suomen kieleen -->
         <p>
-          Palvelutyyppi: 
-          {% if myspaces.service_type == "rental" %}
+          Palvelutyyppi: {% if myspaces.service_type == "rental" %}
             Vuokra
+
           {% elif myspaces.service_type == "loan" %}
             Laina
+
           {% else %}
             Ei määritelty
+
           {% endif %}
         </p>
-        <p>Tilan tyyppi: 
-          {% if myspaces.type == "office" %}
+
+        <!-- If tarkistus tilan tyyppiä varten ja sen kääntäminen suomen kieleen -->
+        <p>
+          Tilan tyyppi: {% if myspaces.type == "office" %}
             Toimisto
+
           {% elif myspaces.type == "meeting_room" %}
             Kokoushuone
+
           {% elif myspaces.type == "conference_room" %}
             Konferenssihuone
+
           {% elif myspaces.type == "event_space" %}
             Tapahtumatila
+
           {% else %}
             Ei määritelty
+
           {% endif %}
         </p>
+
+        <!-- Tilan koko -->
         <p>Tilan koko: {{ myspaces.size }}m²</p>
+
+        <!-- Tilan kapasiteetti -->
         <p>Tilan kapasiteetti: {{ myspaces.capacity }} henkilöä</p>
       </div>
     </div>
+
     <div class="calendar-section">
-        <style>
-          /* Other users' booked days: light red by default */
-          .varattu-paiva { background-color: rgba(255, 0, 0, 0.355) !important; }
-          /* For authenticated viewers, show other users' bookings as dark red */
-          #calendar[data-authenticated="1"] .varattu-paiva { background-color: rgba(255, 0, 0, 0.355) !important; }
-          /* Logged-in user's booked days: orange */
-          .own-varattu-paiva { background-color: rgba(255,140,60,0.28) !important; }
-          /* Background-event class for owner's bookings (stronger) */
-          .own-varattu-bg { background-color: rgba(255,140,60,0.45) !important; }
-          /* Pending selection (free days being selected): light green */
-          .pending-varaus { background-color: rgba(144,238,144,0.45) !important; }
-          /* Ensure day cell text remains readable */
-          .varattu-paiva, .own-varattu-paiva, .pending-varaus { color: inherit !important; }
-        </style>
-        <div style="display:flex;justify-content:flex-end;gap:8px;align-self:flex-end;margin-top:12px;margin-bottom:12px;">
-          <button id="btnConfirmBooking" style="background:#007bff;color:white;padding:6px 10px;border-radius:4px;">Vahvista varaus</button>
-          <button id="btnClearSelection" style="background:#6c757d;color:white;padding:6px 10px;border-radius:4px;">Tyhjennä valinnat</button>
-        </div>
-      <!-- Varaajan tiedot: näytetään lomake vain jos käyttäjä ei ole kirjautunut -->
+      <style>
+        /* Ulkoinen käyttäjä näkee kaikki varatut päivät punaisella */
+        .varattu-paiva { background-color: rgba(255, 0, 0, 0.355) !important; }
+
+        /* Sisäänkirjautunut käyttäjä näkee muiden tekemät varaukset punaisella */
+        #calendar[data-authenticated="1"] .varattu-paiva { background-color: rgba(255, 0, 0, 0.355) !important; }
+
+        /* Sisäänkirjautunut käyttäjä näkee omat varaukset oranssina */
+        .own-varattu-paiva { background-color: rgba(255,140,60,0.28) !important; }
+
+        /* Tausta tapahtuma näkyy vahvempana oranssina */
+        .own-varattu-bg { background-color: rgba(255,140,60,0.45) !important; }
+
+        /* Valitut päivät näkyvät kaikille käyttäjille vihreänä */
+        .pending-varaus { background-color: rgba(144,238,144,0.45) !important; }
+
+        /* Varmistetaan että teksti on luettavissa */
+        .varattu-paiva, .own-varattu-paiva, .pending-varaus { color: inherit !important; }
+      </style>
+
+      <!-- If tarkistus onko käyttäjä kirjautuneena -->
       {% if user.is_authenticated %}
+
       <div id="current-user-info" style="max-width:520px;margin:16px auto;">
         <h3>Kirjautunut käyttäjä</h3>
         <p id="current-user-display">
-          {% if user.first_name %}{{ user.first_name }}{% else %}{{ user.firstname }}{% endif %}
-          {% if user.last_name %}{{ user.last_name }}{% else %}{{ user.lastname }}{% endif %}
+
+          <!-- If tarkistu joka tarkistaa kirjautuneen käyttäjän etunimen -->
+          {% if user.first_name %}
+            {{ user.first_name }}
+
+          {% else %}
+            {{ user.firstname }}
+
+          {% endif %}
+          
+          <!-- If tarkistu joka tarkistaa kirjautuneen käyttäjän sukunimen -->
+          {% if user.last_name %}
+            {{ user.last_name }}
+
+          {% else %}
+            {{ user.lastname }}
+
+          {% endif %}
+
+          <!-- Kirjautuneen käyttäjän säähköposti -->
           &lt;{{ user.email }}&gt;
         </p>
+
+        <!-- Näytetään teksti jos käyttäjä on kirjautunut sisään -->
         <p style="font-size:0.9em;color:#666;margin-top:6px;">Varaukset liitetään automaattisesti kirjautuneeseen käyttäjään.</p>
+
+        <!-- Näytetään viesti kun kirjautunut käyttäjä tekee varauksen -->
         <div id="booking-message" style="margin-top:8px;font-weight:600;"></div>
       </div>
+
       {% else %}
+
+      <!-- Muussa tapauksessa ulkoinen käyttäjä joutuu syöttämään tiedot itse -->
       <div id="booking-form" style="max-width:520px;margin:16px auto;">
         <h3>Varaajan tiedot</h3>
+        <!-- Etunimi teksti ja kenttä -->
         <label for="first_name">Etunimi</label>
         <input id="first_name" name="first_name" type="text" class="form-control" placeholder="Etunimi" />
+
+        <!-- Sukunimi teksti ja kenttä -->
         <label for="last_name">Sukunimi</label>
         <input id="last_name" name="last_name" type="text" class="form-control" placeholder="Sukunimi" />
+
+        <!-- Sähköposti teksti ja kenttä -->
         <label for="email">Sähköposti</label>
         <input id="email" name="email" type="email" class="form-control" placeholder="sahkoposti@esimerkki.fi" />
+
+        <!-- Näytetään teksti kun olet ulkoinen käyttäjä -->
         <p style="font-size:0.9em;color:#666;margin-top:6px;">Täytä tiedot ennen päiväaluetta valitessasi — tiedot liitetään varaukseen.</p>
+
+        <!-- Näytetään viesti kun varaus on tehty -->
         <div id="booking-message" style="margin-top:8px;font-weight:600;"></div>
       </div>
+      
       {% endif %}
-  <!-- Pass current user info safely via data-attributes on the calendar container -->
-  <div id="calendar"
-    data-authenticated="{{ user.is_authenticated|yesno:'1,0' }}"
-    data-first-name="{{ user.first_name|default:''|escape }}"
-    data-last-name="{{ user.last_name|default:''|escape }}"
-    data-email="{{ user.email|default:''|escape }}"
-    data-app-id="{% if user.is_authenticated and user|default_if_none:'' and user.app_profile %}{{ user.app_profile.idNumber }}{% else %}{% endif %}"></div>
-      <!-- Toiminnot myös kalenterin alle (käyttäjä voi vahvistaa tai tyhjentää valinnan tästäkin) -->
 
-    <div style="margin-top:12px;display:flex;justify-content:flex-end;gap:8px;align-self:flex-end;">
-        <button id="btnConfirmBookingBottom" style="background:#007bff;color:white;padding:6px 10px;border-radius:4px;">Vahvista varaus</button>
-    <button id="btnClearSelectionBottom">Tyhjennä valinnat</button>
+      <!-- Lähetetään tieto eteenpäin turvallisesti data-atribuuteilla kalenteripaketissa -->
+      <div id="calendar"
+        data-authenticated="{{ user.is_authenticated|yesno:'1,0' }}"
+        data-first-name="{{ user.first_name|default:''|escape }}"
+        data-last-name="{{ user.last_name|default:''|escape }}"
+        data-email="{{ user.email|default:''|escape }}"
+        data-app-id="{% if user.is_authenticated and user|default_if_none:'' and user.app_profile %}{{ user.app_profile.idNumber }}{% else %}{% endif %}">
+      </div>
+
+      <!-- Painikkeet varauksien vahvistukseen tai syötettyjöb tietojen poistoon -->
+      <div style="display:flex;justify-content:flex-end;gap:8px;align-self:flex-end;margin-top:12px;margin-bottom:12px;">
+
+        <!-- Painike joka vahvistaa varauksen ja lähettää tiedot eteenpäin -->
+        <button id="btnConfirmBooking" style="background:#007bff;color:white;padding:6px 10px;border-radius:4px;">Vahvista varaus</button>
+
+        <!-- Painike joka tyhjentää syötetyt tiedot ja peruuttaa varauksen teon -->
+        <button id="btnClearSelection" style="background:#6c757d;color:white;padding:6px 10px;border-radius:4px;">Tyhjennä valinnat</button>
+      </div>
     </div>
-  </div>
 
-<!-- Tyylit ovat FullCalendar-laajennusten injektoimia, erillistä CSS-tiedostoa ei tarvita -->
-<script>
-  document.addEventListener("DOMContentLoaded", function () {
-    // State
-    const varatutPaivat = new Set();
-    const ownVaratutPaivat = new Set();
-    let pendingDays = [];
-    let pendingEvents = [];
-    // background markers we add for owner's bookings (so we can remove them on refetch)
-    let ownBgEvents = [];
-    const selectedType = 'varattu';
+    <!-- Tyylit ovat FullCalendar-laajennusten injektoimia, erillistä CSS-tiedostoa ei tarvita -->
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // State
+        const varatutPaivat = new Set();
+        const ownVaratutPaivat = new Set();
+        let pendingDays = [];
+        let pendingEvents = [];
+        // background markers we add for owner's bookings (so we can remove them on refetch)
+        let ownBgEvents = [];
+        const selectedType = 'varattu';
 
-    // Read current user info from data-attributes to avoid embedding template tags in JS
-    const calendarEl = document.getElementById('calendar');
-    const dataset = calendarEl ? calendarEl.dataset : {};
-    const currentUser = {
-      authenticated: dataset.authenticated === '1',
-      firstName: dataset.firstName || '',
-      lastName: dataset.lastName || '',
-      email: dataset.email || '',
-      // app-level idNumber (string or empty)
-      appId: dataset.appId || ''
-    };
+        // Read current user info from data-attributes to avoid embedding template tags in JS
+        const calendarEl = document.getElementById('calendar');
+        const dataset = calendarEl ? calendarEl.dataset : {};
+        const currentUser = {
+          authenticated: dataset.authenticated === '1',
+          firstName: dataset.firstName || '',
+          lastName: dataset.lastName || '',
+          email: dataset.email || '',
+          // app-level idNumber (string or empty)
+          appId: dataset.appId || ''
+        };
 
-  // calendarEl is defined above; reuse it
+      // calendarEl is defined above; reuse it
 
-    function toYMD(d) {
-      const y = d.getFullYear();
-      const m = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
-      return `${y}-${m}-${day}`;
-    }
+        function toYMD(d) {
+          const y = d.getFullYear();
+          const m = String(d.getMonth() + 1).padStart(2, '0');
+          const day = String(d.getDate()).padStart(2, '0');
+          return `${y}-${m}-${day}`;
+        }
 
-    function parseIsoLocal(s) {
-      if (!s) return null;
-      const [datePart, timePart] = s.split('T');
-      const [y, mo, d] = datePart.split('-').map(Number);
-      if (!timePart) return new Date(y, (mo || 1) - 1, d || 1);
-      const timeOnly = timePart.split(/Z|\+|-/)[0];
-      const [hh = '0', mm = '0', ss = '0'] = timeOnly.split(':');
-      return new Date(y, (mo || 1) - 1, d || 1, Number(hh), Number(mm), Number(ss));
-    }
+        function parseIsoLocal(s) {
+          if (!s) return null;
+          const [datePart, timePart] = s.split('T');
+          const [y, mo, d] = datePart.split('-').map(Number);
+          if (!timePart) return new Date(y, (mo || 1) - 1, d || 1);
+          const timeOnly = timePart.split(/Z|\+|-/)[0];
+          const [hh = '0', mm = '0', ss = '0'] = timeOnly.split(':');
+          return new Date(y, (mo || 1) - 1, d || 1, Number(hh), Number(mm), Number(ss));
+        }
 
-    const calendar = new FullCalendar.Calendar(calendarEl, {
-      initialView: 'dayGridMonth',
-      locale: 'fi',
-      buttonText: { today: 'Tänään' },
-      selectable: true,
-      events: function(fetchInfo, successCallback, failureCallback) {
-        fetch('/events-json/{{ myspaces.idNumber }}/')
-          .then(r => r.json())
-          .then(events => {
-            // parse and sort events by local timestamp
-            events.sort((a, b) => {
-              const da = parseIsoLocal(a && a.start ? a.start : '');
-              const db = parseIsoLocal(b && b.start ? b.start : '');
-              const ta = da ? da.getTime() : 0;
-              const tb = db ? db.getTime() : 0;
-              return ta - tb;
-            });
-            // fill varatutPaivat and ownVaratutPaivat sets
-            varatutPaivat.clear();
-            ownVaratutPaivat.clear();
-            // remove any previously added owner background markers
-            try { ownBgEvents.forEach(e=>e.remove()); } catch(err) {}
-            ownBgEvents = [];
-            events.forEach(ev => {
-              if (ev.title && ev.title.toLowerCase() === 'varattu') {
-                const key = ev.start && ev.start.split ? ev.start.split('T')[0] : ev.start;
-                if (key) {
-                  varatutPaivat.add(key);
-                  // try to detect reserver email in common places
-                  // Prefer numeric app-level match when provided by backend
-                  const reserverAppId = (ev.reserver_app_id || (ev.extendedProps && ev.extendedProps.reserver_app_id) || null);
-                  const reserverEmail = (ev.reserver_email || ev.email || (ev.extendedProps && (ev.extendedProps.reserver_email || ev.extendedProps.email)) || (ev.user && ev.user.email) || '').toString().toLowerCase();
-                  if (currentUser.authenticated) {
-                    if (reserverAppId && String(reserverAppId) === String(currentUser.appId)) {
-                      ownVaratutPaivat.add(key);
-                    } else if (reserverEmail && reserverEmail === (currentUser.email || '').toLowerCase()) {
-                      ownVaratutPaivat.add(key);
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+          initialView: 'dayGridMonth',
+          locale: 'fi',
+          buttonText: { today: 'Tänään' },
+          selectable: true,
+          events: function(fetchInfo, successCallback, failureCallback) {
+            fetch('/events-json/{{ myspaces.idNumber }}/')
+              .then(r => r.json())
+              .then(events => {
+                // parse and sort events by local timestamp
+                events.sort((a, b) => {
+                  const da = parseIsoLocal(a && a.start ? a.start : '');
+                  const db = parseIsoLocal(b && b.start ? b.start : '');
+                  const ta = da ? da.getTime() : 0;
+                  const tb = db ? db.getTime() : 0;
+                  return ta - tb;
+                });
+                // fill varatutPaivat and ownVaratutPaivat sets
+                varatutPaivat.clear();
+                ownVaratutPaivat.clear();
+                // remove any previously added owner background markers
+                try { ownBgEvents.forEach(e=>e.remove()); } catch(err) {}
+                ownBgEvents = [];
+                events.forEach(ev => {
+                  if (ev.title && ev.title.toLowerCase() === 'varattu') {
+                    const key = ev.start && ev.start.split ? ev.start.split('T')[0] : ev.start;
+                    if (key) {
+                      varatutPaivat.add(key);
+                      // try to detect reserver email in common places
+                      // Prefer numeric app-level match when provided by backend
+                      const reserverAppId = (ev.reserver_app_id || (ev.extendedProps && ev.extendedProps.reserver_app_id) || null);
+                      const reserverEmail = (ev.reserver_email || ev.email || (ev.extendedProps && (ev.extendedProps.reserver_email || ev.extendedProps.email)) || (ev.user && ev.user.email) || '').toString().toLowerCase();
+                      if (currentUser.authenticated) {
+                        if (reserverAppId && String(reserverAppId) === String(currentUser.appId)) {
+                          ownVaratutPaivat.add(key);
+                        } else if (reserverEmail && reserverEmail === (currentUser.email || '').toLowerCase()) {
+                          ownVaratutPaivat.add(key);
+                        }
+                      }
                     }
                   }
-                }
-              }
-            });
-            successCallback(events);
-            // add background markers for owner's bookings (orange-red)
-            try {
-              if (currentUser.authenticated) {
-                ownVaratutPaivat.forEach(d => {
-                  try {
-                    const ev = calendar.addEvent({ start: d, allDay: true, display: 'background', classNames: ['own-varattu-bg'] });
-                    ownBgEvents.push(ev);
-                  } catch (e) {}
                 });
+                successCallback(events);
+                // add background markers for owner's bookings (orange-red)
+                try {
+                  if (currentUser.authenticated) {
+                    ownVaratutPaivat.forEach(d => {
+                      try {
+                        const ev = calendar.addEvent({ start: d, allDay: true, display: 'background', classNames: ['own-varattu-bg'] });
+                        ownBgEvents.push(ev);
+                      } catch (e) {}
+                    });
+                  }
+                } catch (e) {}
+              })
+              .catch(failureCallback);
+          },
+          // block selection if any day is in the past or already booked
+          selectAllow: function(selectInfo) {
+            const start = new Date(selectInfo.start.getFullYear(), selectInfo.start.getMonth(), selectInfo.start.getDate());
+            const end = new Date(selectInfo.end.getFullYear(), selectInfo.end.getMonth(), selectInfo.end.getDate());
+            const today = new Date();
+            const todayKey = toYMD(new Date(today.getFullYear(), today.getMonth(), today.getDate()));
+            let cur = new Date(start);
+            while (cur < end) {
+              const key = toYMD(cur);
+              if (key < todayKey) return false;
+              if (varatutPaivat.has(key)) return false;
+              cur.setDate(cur.getDate() + 1);
+            }
+            return true;
+          },
+          select: function(info) {
+            // build YMD strings for selected range
+            const startDate = new Date(info.start.getFullYear(), info.start.getMonth(), info.start.getDate());
+            const endDate = new Date(info.end.getFullYear(), info.end.getMonth(), info.end.getDate());
+            const dayStrs = [];
+            let cur = new Date(startDate);
+            while (cur < endDate) {
+              dayStrs.push(toYMD(cur));
+              cur.setDate(cur.getDate() + 1);
+            }
+            // replace pending visuals
+            pendingDays = dayStrs;
+            pendingEvents.forEach(e => e.remove());
+            pendingEvents = [];
+            pendingDays.forEach(d => {
+              try {
+                const ev = calendar.addEvent({ start: d, allDay: true, display: 'background', classNames: ['pending-varaus'] });
+                pendingEvents.push(ev);
+              } catch (e) {}
+            });
+            const messageEl = document.getElementById('booking-message');
+            if (messageEl) {
+              if (pendingDays.length === 0) {
+                messageEl.style.color = 'crimson';
+                messageEl.textContent = 'Valitse vähintään yksi päivä.';
+              } else {
+                messageEl.style.color = '#333';
+                messageEl.textContent = `Valitut päivät: ${pendingDays.join(', ')} — paina "Vahvista varaus".`;
+              }
+            }
+            calendar.unselect();
+          },
+          dayCellClassNames: function(arg) {
+            const isoDate = toYMD(arg.date);
+            // Prioritize marking the current user's own bookings first
+            try {
+              if (ownVaratutPaivat && ownVaratutPaivat.has && ownVaratutPaivat.has(isoDate)) {
+                return ['own-varattu-paiva'];
               }
             } catch (e) {}
-          })
-          .catch(failureCallback);
-      },
-      // block selection if any day is in the past or already booked
-      selectAllow: function(selectInfo) {
-        const start = new Date(selectInfo.start.getFullYear(), selectInfo.start.getMonth(), selectInfo.start.getDate());
-        const end = new Date(selectInfo.end.getFullYear(), selectInfo.end.getMonth(), selectInfo.end.getDate());
-        const today = new Date();
-        const todayKey = toYMD(new Date(today.getFullYear(), today.getMonth(), today.getDate()));
-        let cur = new Date(start);
-        while (cur < end) {
-          const key = toYMD(cur);
-          if (key < todayKey) return false;
-          if (varatutPaivat.has(key)) return false;
-          cur.setDate(cur.getDate() + 1);
-        }
-        return true;
-      },
-      select: function(info) {
-        // build YMD strings for selected range
-        const startDate = new Date(info.start.getFullYear(), info.start.getMonth(), info.start.getDate());
-        const endDate = new Date(info.end.getFullYear(), info.end.getMonth(), info.end.getDate());
-        const dayStrs = [];
-        let cur = new Date(startDate);
-        while (cur < endDate) {
-          dayStrs.push(toYMD(cur));
-          cur.setDate(cur.getDate() + 1);
-        }
-        // replace pending visuals
-        pendingDays = dayStrs;
-        pendingEvents.forEach(e => e.remove());
-        pendingEvents = [];
-        pendingDays.forEach(d => {
-          try {
-            const ev = calendar.addEvent({ start: d, allDay: true, display: 'background', classNames: ['pending-varaus'] });
-            pendingEvents.push(ev);
-          } catch (e) {}
+            if (varatutPaivat.has(isoDate)) return ['varattu-paiva'];
+            if (pendingDays && pendingDays.indexOf(isoDate) !== -1) return ['pending-varaus'];
+            return [];
+          }
         });
-        const messageEl = document.getElementById('booking-message');
-        if (messageEl) {
-          if (pendingDays.length === 0) {
-            messageEl.style.color = 'crimson';
-            messageEl.textContent = 'Valitse vähintään yksi päivä.';
-          } else {
-            messageEl.style.color = '#333';
-            messageEl.textContent = `Valitut päivät: ${pendingDays.join(', ')} — paina "Vahvista varaus".`;
-          }
-        }
-        calendar.unselect();
-      },
-      dayCellClassNames: function(arg) {
-        const isoDate = toYMD(arg.date);
-        // Prioritize marking the current user's own bookings first
-        try {
-          if (ownVaratutPaivat && ownVaratutPaivat.has && ownVaratutPaivat.has(isoDate)) {
-            return ['own-varattu-paiva'];
-          }
-        } catch (e) {}
-        if (varatutPaivat.has(isoDate)) return ['varattu-paiva'];
-        if (pendingDays && pendingDays.indexOf(isoDate) !== -1) return ['pending-varaus'];
-        return [];
-      }
-    });
 
-    calendar.render();
+        calendar.render();
 
-    // Clear selection helper and listeners for both top and bottom buttons
-    function clearSelection() {
-      pendingDays = [];
-      try { pendingEvents.forEach(e => e.remove()); } catch (e) {}
-      // Also remove any calendar events that might still carry the pending class
-      try {
-        calendar.getEvents().forEach(ev => {
+        // Clear selection helper and listeners for both top and bottom buttons
+        function clearSelection() {
+          pendingDays = [];
+          try { pendingEvents.forEach(e => e.remove()); } catch (e) {}
+          // Also remove any calendar events that might still carry the pending class
           try {
-            if (ev.classNames && ev.classNames.indexOf('pending-varaus') !== -1) ev.remove();
+            calendar.getEvents().forEach(ev => {
+              try {
+                if (ev.classNames && ev.classNames.indexOf('pending-varaus') !== -1) ev.remove();
+              } catch (er) {}
+            });
           } catch (er) {}
-        });
-      } catch (er) {}
-      pendingEvents = [];
-      // Clear booking message and form fields
-      const messageEl = document.getElementById('booking-message');
-      if (messageEl) messageEl.textContent = '';
-      try {
-        const fn = document.getElementById('first_name'); if (fn) fn.value = '';
-        const ln = document.getElementById('last_name'); if (ln) ln.value = '';
-        const em = document.getElementById('email'); if (em) em.value = '';
-      } catch (er) {}
-      // Force a re-render to update day cell classes
-      try { calendar.render(); } catch (e) {}
-    }
-
-    const btnClear = document.getElementById('btnClearSelection');
-    if (btnClear) btnClear.addEventListener('click', clearSelection);
-    const btnClearBottom = document.getElementById('btnClearSelectionBottom');
-    if (btnClearBottom) btnClearBottom.addEventListener('click', clearSelection);
-
-    // Confirm booking button
-    document.getElementById('btnConfirmBooking').addEventListener('click', function() {
-      const messageEl = document.getElementById('booking-message');
-  const firstNameEl = document.getElementById('first_name');
-  const lastNameEl = document.getElementById('last_name');
-  const emailEl = document.getElementById('email');
-  // Use currentUser when authenticated, otherwise read from form
-  const firstName = currentUser.authenticated ? currentUser.firstName : (firstNameEl ? firstNameEl.value.trim() : '');
-  const lastName = currentUser.authenticated ? currentUser.lastName : (lastNameEl ? lastNameEl.value.trim() : '');
-  const email = currentUser.authenticated ? currentUser.email : (emailEl ? emailEl.value.trim() : '');
-      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!currentUser.authenticated && !firstName) { if (messageEl) { messageEl.style.color='crimson'; messageEl.textContent='Anna varauksen tekijän etunimi.';} return; }
-  if (!currentUser.authenticated && (!email || !emailPattern.test(email))) { if (messageEl) { messageEl.style.color='crimson'; messageEl.textContent='Anna kelvollinen sähköpostiosoite.';} return; }
-      if (!pendingDays || pendingDays.length === 0) { if (messageEl) { messageEl.style.color='crimson'; messageEl.textContent='Ei valittuja päiviä.';} return; }
-
-      // double-check pendingDays against varatut and today
-      const today = toYMD(new Date());
-      const toSend = pendingDays.filter(d => d >= today && !varatutPaivat.has(d));
-      if (toSend.length === 0) { if (messageEl) { messageEl.style.color='crimson'; messageEl.textContent='Valitut päivät ovat menneitä tai jo varattuja.';} pendingEvents.forEach(e=>e.remove()); pendingEvents=[]; pendingDays=[]; calendar.refetchEvents(); return; }
-
-      (async function(){
-        for (const dayStr of toSend) {
+          pendingEvents = [];
+          // Clear booking message and form fields
+          const messageEl = document.getElementById('booking-message');
+          if (messageEl) messageEl.textContent = '';
           try {
-            const resp = await fetch('/add-event/', { method:'POST', headers:{ 'Content-Type':'application/json', 'X-CSRFToken':'{{ csrf_token }}' }, body: JSON.stringify({ title: selectedType, start: dayStr + 'T00:00:00', end: dayStr + 'T23:59:59', space_id: '{{ myspaces.idNumber }}', first_name: firstName, last_name: lastName, email: email }) });
-            const json = await resp.json();
-            if (json.status === 'error') { if (messageEl) { messageEl.style.color='crimson'; messageEl.textContent=`Varauksen epäonnistui päivälle ${dayStr}: ${json.message || 'Virhe'}`; } pendingEvents.forEach(e=>e.remove()); pendingEvents=[]; pendingDays=[]; calendar.refetchEvents(); return; }
-          } catch (e) { if (messageEl) { messageEl.style.color='crimson'; messageEl.textContent=`Verkkovirhe yritettäessä ${dayStr}`; } pendingEvents.forEach(e=>e.remove()); pendingEvents=[]; pendingDays=[]; calendar.refetchEvents(); return; }
+            const fn = document.getElementById('first_name'); if (fn) fn.value = '';
+            const ln = document.getElementById('last_name'); if (ln) ln.value = '';
+            const em = document.getElementById('email'); if (em) em.value = '';
+          } catch (er) {}
+          // Force a re-render to update day cell classes
+          try { calendar.render(); } catch (e) {}
         }
-        if (messageEl) { messageEl.style.color='green'; messageEl.textContent=`Varaukset tallennettu: ${toSend.length} päivä(t).`; }
-        // Clear the booking form fields after successful booking
-        try {
-          if (firstNameEl) firstNameEl.value = '';
-          if (lastNameEl) lastNameEl.value = '';
-          if (emailEl) emailEl.value = '';
-        } catch (er) {}
-        pendingEvents.forEach(e=>e.remove()); pendingEvents=[]; pendingDays=[]; calendar.refetchEvents();
-      })();
-    });
-    document.getElementById('btnConfirmBookingBottom').addEventListener('click', function() {
-      document.getElementById('btnConfirmBooking').click();
-    });
-  });
-</script>
+
+        const btnClear = document.getElementById('btnClearSelection');
+        if (btnClear) btnClear.addEventListener('click', clearSelection);
+        const btnClearBottom = document.getElementById('btnClearSelectionBottom');
+        if (btnClearBottom) btnClearBottom.addEventListener('click', clearSelection);
+
+        // Confirm booking button
+        document.getElementById('btnConfirmBooking').addEventListener('click', function() {
+          const messageEl = document.getElementById('booking-message');
+      const firstNameEl = document.getElementById('first_name');
+      const lastNameEl = document.getElementById('last_name');
+      const emailEl = document.getElementById('email');
+      // Use currentUser when authenticated, otherwise read from form
+      const firstName = currentUser.authenticated ? currentUser.firstName : (firstNameEl ? firstNameEl.value.trim() : '');
+      const lastName = currentUser.authenticated ? currentUser.lastName : (lastNameEl ? lastNameEl.value.trim() : '');
+      const email = currentUser.authenticated ? currentUser.email : (emailEl ? emailEl.value.trim() : '');
+          const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!currentUser.authenticated && !firstName) { if (messageEl) { messageEl.style.color='crimson'; messageEl.textContent='Anna varauksen tekijän etunimi.';} return; }
+      if (!currentUser.authenticated && (!email || !emailPattern.test(email))) { if (messageEl) { messageEl.style.color='crimson'; messageEl.textContent='Anna kelvollinen sähköpostiosoite.';} return; }
+          if (!pendingDays || pendingDays.length === 0) { if (messageEl) { messageEl.style.color='crimson'; messageEl.textContent='Ei valittuja päiviä.';} return; }
+
+          // double-check pendingDays against varatut and today
+          const today = toYMD(new Date());
+          const toSend = pendingDays.filter(d => d >= today && !varatutPaivat.has(d));
+          if (toSend.length === 0) { if (messageEl) { messageEl.style.color='crimson'; messageEl.textContent='Valitut päivät ovat menneitä tai jo varattuja.';} pendingEvents.forEach(e=>e.remove()); pendingEvents=[]; pendingDays=[]; calendar.refetchEvents(); return; }
+
+          (async function(){
+            for (const dayStr of toSend) {
+              try {
+                const resp = await fetch('/add-event/', { method:'POST', headers:{ 'Content-Type':'application/json', 'X-CSRFToken':'{{ csrf_token }}' }, body: JSON.stringify({ title: selectedType, start: dayStr + 'T00:00:00', end: dayStr + 'T23:59:59', space_id: '{{ myspaces.idNumber }}', first_name: firstName, last_name: lastName, email: email }) });
+                const json = await resp.json();
+                if (json.status === 'error') { if (messageEl) { messageEl.style.color='crimson'; messageEl.textContent=`Varauksen epäonnistui päivälle ${dayStr}: ${json.message || 'Virhe'}`; } pendingEvents.forEach(e=>e.remove()); pendingEvents=[]; pendingDays=[]; calendar.refetchEvents(); return; }
+              } catch (e) { if (messageEl) { messageEl.style.color='crimson'; messageEl.textContent=`Verkkovirhe yritettäessä ${dayStr}`; } pendingEvents.forEach(e=>e.remove()); pendingEvents=[]; pendingDays=[]; calendar.refetchEvents(); return; }
+            }
+            if (messageEl) { messageEl.style.color='green'; messageEl.textContent=`Varaukset tallennettu: ${toSend.length} päivä(t).`; }
+            // Clear the booking form fields after successful booking
+            try {
+              if (firstNameEl) firstNameEl.value = '';
+              if (lastNameEl) lastNameEl.value = '';
+              if (emailEl) emailEl.value = '';
+            } catch (er) {}
+            pendingEvents.forEach(e=>e.remove()); pendingEvents=[]; pendingDays=[]; calendar.refetchEvents();
+          })();
+        });
+        document.getElementById('btnConfirmBookingBottom').addEventListener('click', function() {
+          document.getElementById('btnConfirmBooking').click();
+        });
+      });
+    </script>
   </main>
+
+  <!-- Oikea sivupalkki -->
   <aside class="sidebar-right">
     <!-- Oikea sivupalkki sisältö täällä -->
   </aside>
 </div>
+
 {% endblock %}
