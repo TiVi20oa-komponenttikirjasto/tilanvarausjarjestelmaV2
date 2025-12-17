@@ -9,6 +9,7 @@
 
 <div class="layout-container">
 
+  <!-- If tarkistus onko käyttäjä kirjautnut -->
   {% if user.is_authenticated %}
 
   <!-- Vasen sivupalkki: Omat varaukset -->
@@ -81,6 +82,7 @@
           </div>
 
         {% else %}
+
           <!-- Jos ei vauksia näytetään "Ei nykyisiä varauksia teksti" -->
           <p class="text-muted">Ei nykyisiä varauksia</p>
 
@@ -136,11 +138,8 @@
 
         {% endif %}
       </div>
-
     </div>
-
   </main>
-
 </div>
 
 {% endblock %}
