@@ -1,51 +1,72 @@
+/* =============================================================================
+   FONTTI JA PERUSTYYLIT
+   ============================================================================= */
+
+/* Google Fonts - Source Sans Pro fonttiperhe (400 ja 600 painot) */
 @import url('https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;600&display=swap');
 
+/* Body-perustyyli - käytetään koko sivustolla */
 body {
-  margin:0;
+  margin: 0;
   font: 600 18px 'Source Sans Pro', sans-serif;
   letter-spacing: 0.64px;
-  color: #585d74;
+  color: #585d74; /* Harmaa tekstiväri */
 }
 
+/* =============================================================================
+   NAVIGAATIO (TOPNAV)
+   ============================================================================= */
+
+/* Yläpalkin pääkontti - näkyy kaikilla sivuilla, pysyy näytön yläreunassa */
 .topnav {
-  background-color:#375BDC;
-  color:#ffffff;
-  padding:10px;
-  position: sticky;
+  background-color: #375BDC; /* Sininen teemaväri */
+  color: #ffffff;
+  padding: 10px;
+  position: sticky; /* Pysyy yläreunassa kun scrollataan */
   top: 0;
-  z-index: 1000;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 1000; /* Varmistaa että on muiden elementtien päällä */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Hienovarainen varjo */
 }
 
+/* Navigaation linkkien tyylit - normaali ja vierailtu tila */
 .topnav a:link, .topnav a:visited {
-  text-decoration: none;
+  text-decoration: none; /* Ei alleviivausta */
   color: #ffffff; 
 }
 
+/* Navigaation linkkien hover ja aktiivinen tila */
 .topnav a:hover, .topnav a:active {
-  text-decoration: underline;
+  text-decoration: underline; /* Alleviivaus hover-tilassa */
 }
 
+/* =============================================================================
+   SUODATINLOMAKE (FILTTERIT) - käytetään all_spaces.html sivulla
+   ============================================================================= */
+
+/* Suodatinlomakkeen pääkontti */
 .horizontal-filters {
-  background: #f8f9fa;
+  background: #f8f9fa; /* Vaalean harmaa tausta */
   border-radius: 8px;
   padding: 20px;
   margin-bottom: 30px;
-  border: 1px solid #dee2e6;
+  border: 1px solid #dee2e6; /* Harmaa reunus */
 }
 
+/* Grid-layout suodatinkentille - responsiivinen, sopeutuu näytön kokoon */
 .filter-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 15px;
-  align-items: end;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); /* Automaattinen sarakkeiden jako */
+  gap: 15px; /* Väli kenttien välillä */
+  align-items: end; /* Tasataan kenttien alareunaan (nappi samalle tasolle) */
 }
 
+/* Yksittäinen suodatinkenttä */
 .filter-item {
   display: flex;
-  flex-direction: column;
+  flex-direction: column; /* Label ylhäällä, kenttä alla */
 }
 
+/* Suodatinkentän label (otsikko) */
 .filter-item label {
   font-size: 0.875rem;
   font-weight: 600;
@@ -53,15 +74,17 @@ body {
   color: #495057;
 }
 
+/* Alue-suodattimet (min-max kentät) - käytetään koko ja kapasiteetti suodattimissa */
 .filter-range {
   display: flex;
-  gap: 8px;
+  gap: 8px; /* Väli min ja max kenttien välillä */
 }
 
 .filter-range input {
-  flex: 1;
+  flex: 1; /* Tasaa kenttien leveydet */
 }
 
+/* Suodattimen toimintopainikkeet (Hae, Tyhjennä) */
 .filter-actions {
   display: flex;
   gap: 10px;
@@ -69,18 +92,25 @@ body {
   margin-left: flex-start;
 }
 
+/* Suodatinlomakkeen input-kenttien korkeus */
 .horizontal-filters .form-control,
 .horizontal-filters .form-select {
   height: 38px;
   font-size: 0.875rem;
 }
 
+/* Suodatinlomakkeen painikkeiden korkeus ja leveys */
 .horizontal-filters .btn {
   height: 38px;
-  white-space: nowrap;
+  white-space: nowrap; /* Estää tekstin rivittymisen */
   min-width: 80px;
 }
 
+/* =============================================================================
+   KORTTI (MYCARD) - käytetään tilojen näyttämiseen ja tietojen esittämiseen
+   ============================================================================= */
+
+/* Kortin pääkontti - käytetään all_spaces.html ja spaces_details.html sivuilla */
 .mycard {
   background-color: #f1f1f1;
   margin: 40px auto;
@@ -90,130 +120,98 @@ body {
   padding: 20px;
   overflow: hidden;
 }
-  .mycard-right {
-    flex: 1 1 auto;
-    display: flex;
-    flex-direction: column;
-  }
 
-  /* Align card details (header + body) to the right edge of the right column */
-  .mycard-right .mycard-header {
-    align-items: flex-end; /* push header contents to the right */
-    text-align: right;
-  }
+/* =============================================================================
+   KORTIN BODY - Tilan tiedot ja toimintopainikkeet
+   ============================================================================= */
 
-  .mycard-right .mycard-header h1,
-  .mycard-right .mycard-header h2 {
-    text-align: right;
-  }
-
-  .mycard-right .mycard-body {
-    text-align: right; /* right-align body text */
-  }
-
-  /* Make attribute row align to the right */
-  .space-attrs {
-    justify-content: flex-end;
-  }
-
-  /* Ensure buttons inside card body align to the right */
-  .mycard-body .text-center {
-    text-align: right;
-  }
-
-.mycard-header {
-  background-image: linear-gradient(to bottom, #375BDC, #4D70EF); 
-  padding: 5px 16px 5px 16px; /* ylä, oikea, ala, vasen */
-  text-align: center;
-  max-height: 125px;
-}
-
-.mycard-header h1 {
-  color: #333;
-  font-size: 32px;
-  margin: 0;
-  margin-bottom: 20px;
-  line-height: 1.2;
-}
-
-.mycard-header h2 {
-  color: #555;
-  font-size: 32px;
-  margin: 0;
-  margin-top: 25px;
-  margin-bottom: 15px;
-  line-height: 1.2;
-}
-
+/* Kortin sisältöalue - esittää tilan tiedot (palvelu, koko, kapasiteetti) */
 .mycard-body {
   background: #f1f1f1;
   padding: 10px;
 }
 
+/* Kortin tekstielementit - perustyyli */
 .mycard-body p, .mycard-body a {
   color: #585d74;
   font-size: 16px;
   margin: 8px 0;
 }
 
-/* Arrange space attributes in a horizontal row with gaps */
+/* Tilan attribuutit horisontaalisessa rivissä (Palvelu, Koko, Kapasiteetti) */
 .space-attrs {
   display: flex;
   flex-direction: row;
-  gap: 20px; /* space between items */
+  gap: 20px; /* Väli attribuuttien välillä */
   align-items: center;
-  flex-wrap: wrap; /* allow wrapping on small screens */
+  flex-wrap: wrap; /* Rivitys pienillä näytöillä */
   margin: 6px 0;
 }
 
+/* Yksittäinen attribuutti (esim. "Palvelu: Vuokra") */
 .space-attr {
-  margin: 0; /* reset default p margin */
+  margin: 0;
   padding: 6px 10px;
-  background: rgba(55, 91, 220, 0.06);
+  background: rgba(55, 91, 220, 0.06); /* Vaalean sininen tausta */
   border-radius: 6px;
   color: #2e3550;
   font-weight: 600;
   font-size: 14px;
 }
 
+/* Responsiivinen tyyli pienille näytöille */
 @media (max-width: 700px) {
-  .space-attrs { gap: 12px; }
-  .mycard-image img { height: 160px; }
+  .space-attrs { 
+    gap: 12px; /* Pienempi väli mobiilissa */
+  }
+  .mycard-image img { 
+    height: 160px; /* Kuvan korkeus mobiilissa */
+  }
 }
 
-.mycard h1 {
-  text-align: center;
-  color:#ffffff;
-  margin:20px 0 60px 0;
-}
+/* =============================================================================
+   KORTIN HEADER - UUDEMPI VERSIO (tämä on käytössä)
+   ============================================================================= */
 
+/* Kortin header-kontti - sisältää tilan tyypin, sijainnin ja osoitteen */
 .mycard-header {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: flex-start; /* Tasaa vasemmalle */
   justify-content: center;
   padding: 12px 16px;
 }
 
-/* Ensure header texts (type and location) are white and positioned on the blue area */
+/* Header-tekstien valkoiset värit (tämä YLITTÄÄ aiemmat määritelmät) */
 .mycard .mycard-header h1,
 .mycard .mycard-header h2 {
-  color: #ffffff;
+  color: #ffffff; /* Valkoinen teksti sinisellä taustalla */
   margin: 0;
   line-height: 1.1;
 }
 
-.mycard .mycard-header h1 { font-size: 18px; font-weight: 700; }
-.mycard .mycard-header h2 { font-size: 14px; opacity: 0.95; }
-/* ID badge in header (top-right) */
-.mycard .mycard-header {
-  position: relative;
+/* h1 = Tilan tyyppi (Toimisto, Kokoushuone, jne.) */
+.mycard .mycard-header h1 { 
+  font-size: 18px; 
+  font-weight: 700; 
 }
+
+/* h2 = Tilan sijainti (maakunta) tai osoite (riippuen templatesta) */
+.mycard .mycard-header h2 { 
+  font-size: 14px; 
+  opacity: 0.95; 
+}
+
+/* ID-badge kortin oikeassa yläkulmassa (esim. "ID:123") */
+.mycard .mycard-header {
+  position: relative; /* Tarvitaan absolute-positioinnille */
+}
+
 .mycard .mycard-header .space-id {
   position: absolute;
   right: 12px;
   top: 10px;
-  background: rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.1); /* Läpikuultava valkoinen tausta */
   color: #ffffff;
   padding: 4px 8px;
   border-radius: 6px;
@@ -221,39 +219,61 @@ body {
   font-weight: 600;
   opacity: 0.95;
 }
+/* =============================================================================
+   LISTA-ELEMENTIT - käytetään jäsenien listauksessa (all_members.html)
+   ============================================================================= */
+
+/* Lista-kontti - poistetaan oletustyylit */
 ul {
-  list-style-type: none;
+  list-style-type: none; /* Ei bullet-pisteitä */
   padding: 0;
   margin: 0;
 }
 
+/* Yksittäinen lista-elementti - sininen gradient vasemmalla reunalla */
 li {
   background-color: #ffffff;
-  background-image: linear-gradient(to right, #375BDC, #4D70EF); 
-  background-size: 50px 60px;
+  background-image: linear-gradient(to right, #375BDC, #4D70EF); /* Sininen gradient */
+  background-size: 50px 60px; /* Gradientin koko */
   background-repeat: no-repeat;
   cursor: pointer;
-  transition: transform .25s;
+  transition: transform .25s; /* Animaatio hover-efektille */
   border-radius: 5px;
   box-shadow: 0 5px 7px -1px rgba(51, 51, 51, 0.23);
   padding: 15px;
-  padding-left: 70px;
+  padding-left: 70px; /* Tila gradientille vasemmalla */
   margin-top: 5px;
 }
 
+/* Lista-elementin hover-efekti - suurennus */
 li:hover {
-  transform: scale(1.1);
+  transform: scale(1.1); /* 10% suurennus hoverissa */
 }
 
+/* =============================================================================
+   YLEISET LINKKITYYLIT
+   ============================================================================= */
+
+/* Globaalit linkkityylit - käytetään koko sivustolla */
 a:link, a:visited {
-  color: #375BDC; 
+  color: #375BDC; /* Sininen teemaväri linkeille */
 }
 
+/* =============================================================================
+   PÄÄSISÄLTÖALUE - käytetään etusivulla ja yleisessä layoutissa
+   ============================================================================= */
+
+/* Pääsisältöalueen keskitys ja väritys */
 .main, .main h1 {
-  text-align:center;
-  color:#375BDC;
+  text-align: center;
+  color: #375BDC; /* Sininen teemaväri */
 }
 
+/* =============================================================================
+   KALENTERI (FullCalendar) - käytetään spaces_details.html sivulla
+   ============================================================================= */
+
+/* Kalenterin pääkontti - koko ja sijainti */
 #calendar {
   width: 35%;
   height: 35%;
@@ -261,6 +281,7 @@ a:link, a:visited {
   font-size: 1em;
 }
 
+/* Kalenterin osion layout */
 .calendar-section {
   display: flex;
   flex-direction: column;
@@ -268,177 +289,222 @@ a:link, a:visited {
   justify-content: center;
 }
 
+/* Kalenterin status-labelit (Vapaa/Varattu indikaattorit) */
 .status-labels {
   flex-direction: column;
   align-items: flex-start;
   gap: 10px;
 }
 
+/* "Vapaa" -indikaattorin tyyli */
 .status-labels .vapaa {
-  background: #b9fbc0;
-  color: #1a7f37;
+  background: #b9fbc0; /* Vaaleanvihreä */
+  color: #1a7f37; /* Tummanvihreä teksti */
   padding: 8px 24px;
   border-radius: 5px;
 }
 
+/* "Varattu" -indikaattorin tyyli */
 .status-labels .varattu {
-  background: #ffb3b3;
-  color: #b91c1c;
+  background: #ffb3b3; /* Vaaleanpunainen */
+  color: #b91c1c; /* Tummanpunainen teksti */
   padding: 8px 24px;
   border-radius: 5px;
 }
 
-.layout {
-  display: flex;
-  flex-direction: row;
-  min-height: 100vh;
-}
+/* =============================================================================
+   LAYOUT-JÄRJESTELMÄ - Sivupalkit ja pääsisältö
+   ============================================================================= */
 
+/* Pääasiallinen layout-kontti - käytetään all_spaces.html sivulla */
 .layout-container {
   display: flex;
-  min-height: calc(100vh - 140px);
-  gap: 20px;
+  min-height: calc(100vh - 140px); /* Koko näytön korkeus miinus nav/footer */
+  gap: 20px; /* Väli sivupalkin ja sisällön välillä */
   max-width: auto;
   margin: 0 auto;
   padding: 20px;
 }
 
-.sidebar-left, .sidebar-right {
+/* Sivupalkit (vasen ja oikea) - tällä hetkellä vain vasen käytössä */
+.sidebar-left {
   width: 350px;
-  background: #f8f9fa;
+  background: #f8f9fa; /* Vaalea harmaa tausta */
   border-right: 1px solid #dee2e6;
   padding: 20px;
-  overflow-y: auto;
+  overflow-y: auto; /* Scrollaus jos sisältö ylittää */
 }
 
+/* Pääsisältöalue - flex-layout joustava leveys */
 .main-content {
-  flex: 1;
+  flex: 1; /* Ottaa jäljelle jäävän tilan */
   padding: 20px;
 }
 
+/* =============================================================================
+   VARAUKSET-SIVUPALKKI - Näyttää käyttäjän varaukset all_spaces.html sivulla
+   ============================================================================= */
+
+/* Varauspaneelin pääotsikko */
 .reservations-sidebar h3 {
   color: #495057;
-  border-bottom: 2px solid #007bff;
+  border-bottom: 2px solid #007bff; /* Sininen alleviivaus */
   padding-bottom: 10px;
   margin-bottom: 20px;
 }
 
+/* Varausten osio (esim. "Nykyiset varaukset") */
 .reservation-section {
   margin-bottom: 20px;
 }
 
+/* Osion alaotsikko */
 .reservation-section h5 {
   color: #6c757d;
   font-size: 1rem;
   margin-bottom: 10px;
 }
 
+/* Varauslista - rajoitettu korkeus scrollauksella */
 .reservation-list {
   max-height: 400px;
-  overflow-y: auto;
+  overflow-y: auto; /* Pystysuunta scrollaus */
 }
 
+/* Yksittäinen varauskohta */
 .reservation-item {
   background: white;
   border: 1px solid #e9ecef;
   border-radius: 5px;
   padding: 12px;
   margin-bottom: 10px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
+/* Varatun tilan tiedot */
 .reservation-space {
   font-size: 0.9rem;
   margin-bottom: 5px;
 }
 
+/* Varauksen aikatieto */
 .reservation-time {
   font-size: 0.8rem;
   color: #6c757d;
   margin-bottom: 8px;
 }
 
+/* Varauksen toimintopainikkeet (Peruuta jne.) */
 .reservation-actions {
   text-align: right;
 }
 
-/* Responsiivinen tyyli */
+/* =============================================================================
+   RESPONSIIVISET TYYLIT - Sopeutuvat eri näyttökokoihin
+   ============================================================================= */
+
+/* Keskikokoiset näytöt (tabletti) - alle 1200px */
 @media (max-width: 1200px) {
   .filter-grid {
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); /* Hieman pienempi minimi */
   }
 }
 
+/* Pienet näytöt (mobiili) - alle 768px */
 @media (max-width: 768px) {
   .filter-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr; /* Yksi sarake mobiilissa */
     gap: 12px;
   }
 
   .filter-actions {
-    justify-content: center;
+    justify-content: center; /* Keskitä painikkeet mobiilissa */
   }
 }
 
+/* Pääsisältöalueen leveys kun sivupalkki on näkyvissä */
 .main-content.with-sidebar {
-  max-width: calc(100% - 370px);
+  max-width: calc(100% - 370px); /* Leveys miinus sivupalkin leveys */
   margin-left: 0;
 }
 
+/* =============================================================================
+   LOMAKE-ELEMENTIT - Yleiset lomakekentät
+   ============================================================================= */
+
+/* Lomakekenttien alapuolen väli */
 .form-control, .form-select {
   margin-bottom: 8px;
 }
 
+/* =============================================================================
+   KALENTERIN PÄIVÄVÄRIT - FullCalendar custom-tyylit
+   ============================================================================= */
+
+/* Varattu päivä kalenterissa (muiden varaukset) */
 .varattu-paiva {
-  background-color: #e05b5b !important;
+  background-color: #e05b5b !important; /* Punainen */
 }
 
+/* Käyttäjän oma varattu päivä kalenterissa */
 .varattu-oma-paiva { 
-  background-color: #00ff40 !important;
+  background-color: #00ff40 !important; /* Kirkkaan vihreä */
 }
 
-
+/* HUOM: Tämä piilottaa FullCalendar event-elementit - varmista että on tarkoituksenmukaista */
 .fc-daygrid-event {
-  display: none !important;
+  display: none !important; /* Piilottaa tapahtumat päiväruudukossa */
 }
 
+/* =============================================================================
+   PAINIKKEET (BUTTONS) - Yleiset painikketyylit
+   ============================================================================= */
+
+/* Pieni painike */
 .btn-sm {
   padding: 0.25rem 0.5rem;
   font-size: 0.875rem;
 }
 
+/* Suuri painike */
 .btn-lg {
   padding: 0.5rem 1rem;
   font-size: 1.25rem;
   border-radius: 0;
 }
 
+/* Yleiset painikkeiden marginaalit */
+/* HUOM: DUPLIKAATTI - määritelty kahdesti, toinen tarpeeton */
+.btn {
+  margin: 2px;
+}
+
+/* =============================================================================
+   UTILITY-LUOKAT - Apuluokat layoutia varten
+   ============================================================================= */
+
+/* Keskitä teksti */
 .text-center {
   text-align: center;
 }
 
+/* Ylämarginaali (margin-top) */
 .mt-3 {
   margin-top: 1rem;
 }
 
+/* Alamarginaali (margin-bottom) */
 .mb-4 {
   margin-bottom: 1.5rem;
 }
 
-
+/* Lomakkeen label-elementti */
 .form-label {
   margin-bottom: 0.5rem;
   display: block;
 }
 
-.btn {
-  margin: 2px;
-}
-
-.btn {
-  margin: 2px;
-}
-
+/* Kortin bodyn keskitetty sisältö - lisää ylämarginaali */
 .mycard-body .text-center {
   margin-top: 15px;
 }
