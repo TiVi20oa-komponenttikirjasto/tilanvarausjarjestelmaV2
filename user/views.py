@@ -334,7 +334,10 @@ def spaces(request):
 
     if q_id:
         try:
-            qs = qs.filter(idNumber=int(q_id))
+            id_val = int(q_id)
+            if id_val > 0:
+                qs = qs.filter(idNumber=id_val)
+            # else: ignore non-positive values
         except ValueError:
             pass
     if q_location:
