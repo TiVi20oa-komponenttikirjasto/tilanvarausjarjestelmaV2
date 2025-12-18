@@ -19,7 +19,8 @@ body {
 
 /* Yläpalkin pääkontti - näkyy kaikilla sivuilla, pysyy näytön yläreunassa */
 .topnav {
-  background-color: #375BDC; /* Sininen teemaväri */
+  /* background-color: #375BDC;  */
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%); /* Sininen gradientti */
   color: #ffffff;
   padding: 10px;
   position: sticky; /* Pysyy yläreunassa kun scrollataan */
@@ -117,7 +118,7 @@ body {
   width: 900px;
   border-radius: 5px;
   box-shadow: 0 5px 7px -1px rgba(51, 51, 51, 0.23); 
-  padding: 20px;
+  padding: 0px;
   overflow: hidden;
 }
 
@@ -180,12 +181,14 @@ body {
   align-items: flex-start; /* Tasaa vasemmalle */
   justify-content: center;
   padding: 12px 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); /* Sininen gradientti */
+  border-radius: 12px 12px 0 0; /* Pyöristetyt kulmat ylhäällä */
 }
 
 /* Header-tekstien valkoiset värit (tämä YLITTÄÄ aiemmat määritelmät) */
 .mycard .mycard-header h1,
 .mycard .mycard-header h2 {
-  color: #ffffff; /* Valkoinen teksti sinisellä taustalla */
+  color: #ffffff; /* Valkoinen teksti */
   margin: 0;
   line-height: 1.1;
 }
@@ -211,14 +214,15 @@ body {
   position: absolute;
   right: 12px;
   top: 10px;
-  background: rgba(255, 255, 255, 0.1); /* Läpikuultava valkoinen tausta */
-  color: #ffffff;
+  background: rgba(255, 255, 255, 0.2); /* Läpikuultava valkoinen tausta */
+  color: #ffffff; /* Valkoinen teksti */
   padding: 4px 8px;
   border-radius: 6px;
   font-size: 12px;
   font-weight: 600;
   opacity: 0.95;
 }
+
 /* =============================================================================
    LISTA-ELEMENTIT - käytetään jäsenien listauksessa (all_members.html)
    ============================================================================= */
@@ -275,10 +279,21 @@ a:link, a:visited {
 
 /* Kalenterin pääkontti - koko ja sijainti */
 #calendar {
-  width: 35%;
-  height: 35%;
+  width: 100%; /* Suurempi leveys desktopilla */
+  max-width: 700px; /* Leveyden yläraja */
+  height: 475px; /* Suurempi korkeus näkyville viikoille/kuukausille */
   margin: 30px auto;
-  font-size: 1em;
+  font-size: 1.1em; /* Hieman isompi fontti kalenterissa */
+}
+
+/* Mobiili: täysleveys ja sopivampi korkeus */
+@media (max-width: 768px) {
+  #calendar {
+    width: 100%;
+    max-width: 100%;
+    height: 550px;
+    font-size: 1em;
+  }
 }
 
 /* Kalenterin osion layout */
