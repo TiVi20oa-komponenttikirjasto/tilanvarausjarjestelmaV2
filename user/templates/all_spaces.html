@@ -94,10 +94,10 @@
         <form method="get" class="mb-0">
           <div class="filter-grid">
 
-            <!-- Tilan ID -->
+            <!-- Tilan ID (ID-filtterin arvo ei voi olla negatiivinen) -->
             <div class="filter-item">
               <label>ID</label>
-              <input type="number" name="id" placeholder="Tilan-ID" value="{{ request.GET.id|default:'' }}" class="form-control">
+              <input type="number" name="id" placeholder="Tilan-ID" value="{{ request.GET.id|default:'' }}" class="form-control" min="1">
             </div>
 
             <!-- Tilan Maakunta -->
