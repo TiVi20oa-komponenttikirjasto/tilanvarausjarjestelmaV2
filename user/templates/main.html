@@ -66,10 +66,8 @@
               <div class="reservation-actions">
 
                 <!-- Painike joka avaa valitun varauksen peruutusvarmistuksen -->
-                <a href="{% url 'delete_reservation' reservation.id %}" 
-                   class="btn btn-sm btn-danger"
-                   onclick="return confirm('Haluatko varmasti peruuttaa varauksen?')">
-                  Peruuta
+                <a href="{% url 'delete_reservation' reservation.id %}" onclick="return confirm('Haluatko varmasti peruuttaa tilauksen?')">
+                   <button class="btn btn-sm btn-danger">Peruuta</button>
                 </a>
 
               </div>
